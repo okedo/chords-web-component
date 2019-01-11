@@ -1,0 +1,26 @@
+{
+  "name": "chords-web-component",
+  "version": "0.0.0",
+  "description": "Custom element for guitar chords created using web-components and canvas",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/okedo/chords-web-component.git"
+  },
+  "keywords": [
+    "web-components",
+    "chords",
+    "guitar",
+    "music",
+    "js"
+  ],
+  "author": "okedo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/okedo/chords-web-component/issues"
+  },
+  "homepage": "https://github.com/okedo/chords-web-component#readme"
+}
