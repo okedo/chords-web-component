@@ -23,16 +23,21 @@ class SingleChord extends HTMLElement {
     this.id = `single-chord-component-${new Date().getTime()}-${this.idEnding}`;
 
     this.chordComponentRef = document.getElementById(this.id);
-    this.initChord();
-    this.initSize();
-    this.shadowRoot.innerHTML = this.getCurrentTemplete();
-    this.initCanvas();
+    if (this.getCurrentChord(this.getChordNameAttr())) {
+      this.initAttributes();
+      this.currentChord = this.getCurrentChord(this.getChordNameAttr());
+      this.initSize();
+      this.shadowRoot.innerHTML = this.getCurrentTemplete();
+      this.initCanvas();
 
-    this.findBorders();
-    this.calculateCanvasSize();
-    this.state.canvas.setAttribute("height", this.state.canvasHeight);
-    this.state.canvas.setAttribute("width", this.state.canvasWidth);
-    this.drawChord();
+      this.findBorders();
+      this.calculateCanvasSize();
+      this.state.canvas.setAttribute("height", this.state.canvasHeight);
+      this.state.canvas.setAttribute("width", this.state.canvasWidth);
+      this.drawChord();
+    } else {
+      this.shadowRoot.innerHTML = "<div>Unknown chord</div>";
+    }
   }
 
   initSize() {
@@ -52,14 +57,22 @@ class SingleChord extends HTMLElement {
     return this.chordComponentRef.getAttribute("theme");
   }
 
-  initChord() {
-    const chordName = this.getChordNameAttr();
-    const sizeAttr = this.getSizeAttr();
-    this.size = sizeList[sizeAttr] ? sizeList[sizeAttr] : sizeList.medium;
+  initAttributes() {
+    this.resolveSize(this.getSizeAttr());
+    this.theme = this.getThemeAttr() ? this.getThemeAttr() : "light";
+  }
+
+  resolveSize(size) {
+    const sizeParsed = parseFloat("" + size);
+    if (isNaN(sizeParsed)) {
+      this.size = sizeList[size] ? sizeList[size] : sizeList.medium;
+    } else this.size = sizeParsed;
     this.state.canvasHeight = this.state.canvasHeight * this.size;
     this.state.canvasWidth = this.state.canvasWidth * this.size;
-    this.theme = this.getThemeAttr() ? this.getThemeAttr() : "light";
-    this.currentChord = chordList.find(
+  }
+
+  getCurrentChord(chordName) {
+    return chordList.find(
       el => el.name.toUpperCase() == chordName.toUpperCase()
     );
   }
