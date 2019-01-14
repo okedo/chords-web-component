@@ -13,6 +13,7 @@ class SingleChord extends HTMLElement {
     this.size = sizeList.medium;
     this.rowWidth = 30;
     this.stringHeight = 20;
+    this.theme = "light";
 
     this.idEnding = this.makeIdEnding();
 
@@ -47,12 +48,17 @@ class SingleChord extends HTMLElement {
     return this.chordComponentRef.getAttribute("size");
   }
 
+  getThemeAttr() {
+    return this.chordComponentRef.getAttribute("theme");
+  }
+
   initChord() {
     const chordName = this.getChordNameAttr();
     const sizeAttr = this.getSizeAttr();
     this.size = sizeList[sizeAttr] ? sizeList[sizeAttr] : sizeList.medium;
     this.state.canvasHeight = this.state.canvasHeight * this.size;
     this.state.canvasWidth = this.state.canvasWidth * this.size;
+    this.theme = this.getThemeAttr() ? this.getThemeAttr() : "light";
     this.currentChord = chordList.find(
       el => el.name.toUpperCase() == chordName.toUpperCase()
     );
@@ -70,7 +76,7 @@ class SingleChord extends HTMLElement {
 
   drawBasis() {
     this.drawRectangle(
-      "#E5CE8C",
+      styleConstants.colors.basisColor[this.theme],
       0,
       0,
       this.state.canvasHeight,
@@ -78,7 +84,7 @@ class SingleChord extends HTMLElement {
     );
     for (let i = 1; i <= 12; i++) {
       this.drawALine(
-        "#FFFFFF",
+        styleConstants.colors.rowDividerColor[this.theme],
         i * this.rowWidth,
         0,
         i * this.rowWidth,
@@ -87,7 +93,7 @@ class SingleChord extends HTMLElement {
     }
     for (let i = 0; i <= 6; i++) {
       this.drawALine(
-        "#6D5454",
+        styleConstants.colors.stringsColor[this.theme],
         0,
         i * this.stringHeight,
         this.state.canvasWidth,
@@ -108,6 +114,7 @@ class SingleChord extends HTMLElement {
     const stringHeight = this.stringHeight;
     let currentStringHigth = this.stringHeight;
     const pressedStringRows = [];
+    const circleColor = styleConstants.colors.circleColor[this.theme];
     this.drawBasis();
     for (const stringG in this.currentChord.structure.strings) {
       if (this.currentChord.structure.strings.hasOwnProperty(stringG)) {
@@ -115,8 +122,8 @@ class SingleChord extends HTMLElement {
           pressedStringRows.push(element);
           this.drawCircle(
             5 * this.size,
-            "black",
-            "black",
+            circleColor,
+            circleColor,
             this.calculateElementHorizontalPosition(element),
             currentStringHigth
           );
@@ -189,7 +196,7 @@ class SingleChord extends HTMLElement {
 
   drawBare(row) {
     this.drawALine(
-      "black",
+      styleConstants.colors.circleColor[this.theme],
       this.calculateElementHorizontalPosition(row),
       5 * this.size,
       this.calculateElementHorizontalPosition(row),
@@ -221,32 +228,36 @@ class SingleChord extends HTMLElement {
     </div>                                    
     <style>
         .accord-description {
-        display: flex;
-        justify-content: space-between;
-        border: solid black 1px;
-        border-bottom: none;
-        font-size: ${styleConstants.fontSize[this.getSizeAttr()]};
+            display: flex;
+            justify-content: space-between;
+            border: solid ${styleConstants.colors.borderColor[this.theme]} 1px;
+            border-bottom: none;
+            font-size: ${styleConstants.fontSize[this.size]};
+            color: ${styleConstants.colors.textColor[this.theme]};
+            background-color: ${
+              styleConstants.colors.backgroundColor[this.theme]
+            };
         }
         .description-element {
-        display: inline-block;
-        width: 50%;
-        padding-top: 2px;
-        padding-left: 5px;
+            display: inline-block;
+            width: 50%;
+            padding-top: 2px;
+            padding-left: 5px;
         }
-        .row-number-container {
-        display: inline-block;
-        text-align: right;
-        padding-right: 13px;
+            .row-number-container {
+            display: inline-block;
+            text-align: right;
+            padding-right: 13px;
         }
         .main-container {
-        width: auto;
-        display: inline-block;
-        margin: 20px;
-        color: black;
+            width: auto;
+            display: inline-block;
+            margin: 20px;
+            color: ${styleConstants.colors.borderColor[this.theme]};
         }
         .canvas-style {
-        border: solid black 1px;
-        border-top: none;
+            border: solid ${styleConstants.colors.borderColor[this.theme]} 1px;
+            border-top: none;
         }
     </style>`;
     return template;
@@ -590,9 +601,39 @@ sizeList = {
 
 styleConstants = {
   fontSize: {
-    medium: "14px",
-    small: "10px",
-    large: "24px"
+    "1": "14px",
+    "0.9": "10px",
+    "2": "24px"
+  },
+  colors: {
+    circleColor: {
+      dark: "#FFFFFF",
+      light: "#000000"
+    },
+    basisColor: {
+      dark: "#795548",
+      light: "#E5CE8C"
+    },
+    stringsColor: {
+      dark: "#cddc39",
+      light: "#6D5454"
+    },
+    rowDividerColor: {
+      dark: "#000000",
+      light: "#FFFFFF"
+    },
+    borderColor: {
+      dark: "#FFFFFF",
+      light: "#000000"
+    },
+    textColor: {
+      dark: "#FFFFFF",
+      light: "#000000"
+    },
+    backgroundColor: {
+      dark: "#000000",
+      light: "#FFFFFF"
+    }
   }
 };
 
