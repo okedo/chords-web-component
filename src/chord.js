@@ -8,7 +8,11 @@ class SingleChord extends HTMLElement {
       maxRow: 12,
       reflect: true
     };
-    this.props = {};
+    this.currentChord = {};
+
+    this.size = sizeList.medium;
+    this.rowWidth = 30;
+    this.stringHeight = 20;
 
     this.idEnding = this.makeIdEnding();
 
@@ -17,28 +21,41 @@ class SingleChord extends HTMLElement {
 
     this.id = `single-chord-component-${new Date().getTime()}-${this.idEnding}`;
 
-    setTimeout(() => {
-      this.chordComponentRef = document.getElementById(this.id);
-      this.initChord();
-      this.shadowRoot.innerHTML = this.getCurrentTemplete();
-      this.initCanvas();
+    this.chordComponentRef = document.getElementById(this.id);
+    this.initChord();
+    this.initSize();
+    this.shadowRoot.innerHTML = this.getCurrentTemplete();
+    this.initCanvas();
 
-      if (this.state.reflect) {
-        this.reflectChord();
-      }
-      this.findBorders();
-      this.calculateCanvasSize();
-      setTimeout(() => {
-        this.state.canvas.setAttribute("height", this.state.canvasHeight);
-        this.state.canvas.setAttribute("width", this.state.canvasWidth);
-        this.drawChord();
-      });
-    });
+    this.findBorders();
+    this.calculateCanvasSize();
+    this.state.canvas.setAttribute("height", this.state.canvasHeight);
+    this.state.canvas.setAttribute("width", this.state.canvasWidth);
+    this.drawChord();
+  }
+
+  initSize() {
+    this.stringHeight = this.stringHeight * this.size;
+    this.rowWidth = this.stringHeight * this.size;
+  }
+
+  getChordNameAttr() {
+    return this.chordComponentRef.getAttribute("chord");
+  }
+
+  getSizeAttr() {
+    return this.chordComponentRef.getAttribute("size");
   }
 
   initChord() {
-    const chordName = this.chordComponentRef.getAttribute("chord");
-    this.props = chordList.find(el => el.name == chordName);
+    const chordName = this.getChordNameAttr();
+    const sizeAttr = this.getSizeAttr();
+    this.size = sizeList[sizeAttr] ? sizeList[sizeAttr] : sizeList.medium;
+    this.state.canvasHeight = this.state.canvasHeight * this.size;
+    this.state.canvasWidth = this.state.canvasWidth * this.size;
+    this.currentChord = chordList.find(
+      el => el.name.toUpperCase() == chordName.toUpperCase()
+    );
   }
 
   initCanvas() {
@@ -46,6 +63,9 @@ class SingleChord extends HTMLElement {
     const renderingContext = canvasRef ? canvasRef.getContext("2d") : null;
     this.state.canvas = canvasRef;
     this.state.ctx = renderingContext;
+    if (this.state.reflect) {
+      this.reflectChord();
+    }
   }
 
   drawBasis() {
@@ -57,10 +77,22 @@ class SingleChord extends HTMLElement {
       this.state.canvasWidth
     );
     for (let i = 1; i <= 12; i++) {
-      this.drawALine("#FFFFFF", i * 30, 0, i * 30, this.state.canvasHeight);
+      this.drawALine(
+        "#FFFFFF",
+        i * this.rowWidth,
+        0,
+        i * this.rowWidth,
+        this.state.canvasHeight
+      );
     }
     for (let i = 0; i <= 6; i++) {
-      this.drawALine("#6D5454", 0, i * 20, this.state.canvasWidth, i * 20);
+      this.drawALine(
+        "#6D5454",
+        0,
+        i * this.stringHeight,
+        this.state.canvasWidth,
+        i * this.stringHeight
+      );
     }
   }
 
@@ -73,16 +105,16 @@ class SingleChord extends HTMLElement {
   }
 
   drawChord() {
-    const stringHeight = 20;
-    let currentStringHigth = 20;
+    const stringHeight = this.stringHeight;
+    let currentStringHigth = this.stringHeight;
     const pressedStringRows = [];
     this.drawBasis();
-    for (const stringG in this.props.structure.strings) {
-      if (this.props.structure.strings.hasOwnProperty(stringG)) {
-        this.props.structure.strings[stringG].forEach(element => {
+    for (const stringG in this.currentChord.structure.strings) {
+      if (this.currentChord.structure.strings.hasOwnProperty(stringG)) {
+        this.currentChord.structure.strings[stringG].forEach(element => {
           pressedStringRows.push(element);
           this.drawCircle(
-            5,
+            5 * this.size,
             "black",
             "black",
             this.calculateElementHorizontalPosition(element),
@@ -101,30 +133,33 @@ class SingleChord extends HTMLElement {
   findBorders() {
     let max = 1;
     let min = 12;
-    for (const stringG in this.props.structure.strings) {
-      if (this.props.structure.strings.hasOwnProperty(stringG)) {
+    for (const stringG in this.currentChord.structure.strings) {
+      if (this.currentChord.structure.strings.hasOwnProperty(stringG)) {
         max =
-          Math.max.apply(null, this.props.structure.strings[stringG]) > max
-            ? Math.max.apply(null, this.props.structure.strings[stringG])
+          Math.max.apply(null, this.currentChord.structure.strings[stringG]) >
+          max
+            ? Math.max.apply(null, this.currentChord.structure.strings[stringG])
             : max;
         min =
-          Math.min.apply(null, this.props.structure.strings[stringG]) < min
-            ? Math.min.apply(null, this.props.structure.strings[stringG])
+          Math.min.apply(null, this.currentChord.structure.strings[stringG]) <
+          min
+            ? Math.min.apply(null, this.currentChord.structure.strings[stringG])
             : min;
       }
     }
 
-    this.state.maxRow = max - this.props.startString < 2 ? max + 1 : max;
+    this.state.maxRow = max - this.currentChord.startString < 2 ? max + 1 : max;
   }
 
   calculateElementHorizontalPosition(elementPosition) {
-    const elementPos = elementPosition - this.props.startString;
-    const rowWidth = 30;
+    const elementPos = elementPosition - this.currentChord.startString;
+    const rowWidth = this.rowWidth;
     return this.state.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
   }
 
   calculateCanvasSize() {
-    const tempWidth = (this.state.maxRow - this.props.startString + 1) * 30;
+    const tempWidth =
+      (this.state.maxRow - this.currentChord.startString + 1) * this.rowWidth;
     this.state.canvasWidth = tempWidth;
   }
 
@@ -156,14 +191,15 @@ class SingleChord extends HTMLElement {
     this.drawALine(
       "black",
       this.calculateElementHorizontalPosition(row),
-      5,
+      5 * this.size,
       this.calculateElementHorizontalPosition(row),
       this.state.canvasHeight - 5,
-      15
+      15 * this.size
     );
   }
 
   reflectChord() {
+    //TODO create flipping logic
     this.state.ctx.scale(-1, 1);
   }
 
@@ -172,10 +208,10 @@ class SingleChord extends HTMLElement {
     <div class="main-container">
         <div class="accord-description">
             <div class="description-element">
-                ${this.props.name}
+                ${this.currentChord.name}
             </div>
             <div class="description-element row-number-container">
-                ${this.props.startString}
+                ${this.currentChord.startString}
                 </div>
         </div>
         <canvas
@@ -189,7 +225,7 @@ class SingleChord extends HTMLElement {
         justify-content: space-between;
         border: solid black 1px;
         border-bottom: none;
-        font-size: 14px;
+        font-size: ${styleConstants.fontSize[this.getSizeAttr()]};
         }
         .description-element {
         display: inline-block;
@@ -545,5 +581,19 @@ const chordList = [
     }
   }
 ];
+
+sizeList = {
+  medium: 1,
+  large: 2,
+  small: 0.9
+};
+
+styleConstants = {
+  fontSize: {
+    medium: "14px",
+    small: "10px",
+    large: "24px"
+  }
+};
 
 customElements.define("single-chord", SingleChord);
