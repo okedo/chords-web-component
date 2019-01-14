@@ -6,7 +6,6 @@ class SingleChord extends HTMLElement {
       canvasWidth: 390,
       canvasHeight: 140,
       maxRow: 12,
-      minRow: 0,
       reflect: true
     };
     this.props = {};
@@ -119,17 +118,18 @@ class SingleChord extends HTMLElement {
             : min;
       }
     }
-    this.state.maxRow = max;
-    this.state.minRow = min;
+
+    this.state.maxRow = max - this.props.startString < 2 ? max + 1 : max;
   }
 
-  calculateElementHorizontalPosition(element) {
+  calculateElementHorizontalPosition(elementPosition) {
+    const elementPos = elementPosition - this.props.startString;
     const rowWidth = 30;
-    return this.state.canvasWidth - element * rowWidth + rowWidth * 0.5;
+    return this.state.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
   }
 
   calculateCanvasSize() {
-    const tempWidth = (this.state.maxRow - this.state.minRow + 1) * 30;
+    const tempWidth = (this.state.maxRow - this.props.startString + 1) * 30;
     this.state.canvasWidth = tempWidth;
   }
 
@@ -175,19 +175,15 @@ class SingleChord extends HTMLElement {
   getCurrentTemplete() {
     const template = `<div class="main-container">
                               <div class="accord-description">
-                                  <div id="${
-                                    this.chordNameId
-                                  }" class="description-element">
+                                  <div 
+                                  id=${this.chordNameId} 
+                                  class="description-element">
                                       ${this.props.name}
                                   </div>
-                                  <div id="${
-                                    this.rowNumberId
-                                  }" class="description-element row-number-container">
-                                      ${
-                                        this.state.minRow
-                                          ? this.state.minRow
-                                          : 1
-                                      }
+                                  <div 
+                                  id=${this.rowNumberId} 
+                                  class="description-element row-number-container">
+                                      ${this.props.startString}
                                   </div>
                               </div>
                               <canvas
