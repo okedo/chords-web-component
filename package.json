@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/okedo/chords-web-component/issues"
   },
-  "homepage": "https://github.com/okedo/chords-web-component#readme"
+  "homepage": "https://github.com/okedo/chords-web-component#readme",
+  "dependencies": {
+    "gulp": "^4.0.0"
+  }
 }
