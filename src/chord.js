@@ -245,7 +245,7 @@ class SingleChord extends HTMLElement {
             justify-content: space-between;
             border: solid ${styleConstants.colors.borderColor[this.theme]} 1px;
             border-bottom: none;
-            font-size: ${styleConstants.fontSize[this.size]};
+            font-size: ${styleConstants.fontSize.normal * this.size}px;
             color: ${styleConstants.colors.textColor[this.theme]};
             background-color: ${
               styleConstants.colors.backgroundColor[this.theme]
@@ -614,9 +614,7 @@ sizeList = {
 
 styleConstants = {
   fontSize: {
-    "1": "14px",
-    "0.9": "10px",
-    "2": "24px"
+    normal: 14
   },
   colors: {
     circleColor: {
