@@ -12,16 +12,15 @@ class SingleChord extends HTMLElement {
 
     this.idEnding = this.makeIdEnding();
 
-    this.chordId = `single-chord-${new Date().getTime()}-${this.idEnding}`;
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot.innerHTML = "<div>Loading data</div>";
+
     this.id = `single-chord-component-${new Date().getTime()}-${this.idEnding}`;
-    this.rowNumberId = `row-number-${new Date().getTime()}-${this.idEnding}`;
-    this.chordNameId = `chord-name-${new Date().getTime()}-${this.idEnding}`;
-    this.innerHTML = "<div>Loading data</div>";
 
     setTimeout(() => {
       this.chordComponentRef = document.getElementById(this.id);
       this.initChord();
-      this.innerHTML = this.getCurrentTemplete();
+      this.shadowRoot.innerHTML = this.getCurrentTemplete();
       this.initCanvas();
 
       if (this.state.reflect) {
@@ -30,12 +29,8 @@ class SingleChord extends HTMLElement {
       this.findBorders();
       this.calculateCanvasSize();
       setTimeout(() => {
-        document
-          .getElementById(this.chordId)
-          .setAttribute("height", this.state.canvasHeight);
-        document
-          .getElementById(this.chordId)
-          .setAttribute("width", this.state.canvasWidth);
+        this.state.canvas.setAttribute("height", this.state.canvasHeight);
+        this.state.canvas.setAttribute("width", this.state.canvasWidth);
         this.drawChord();
       });
     });
@@ -47,7 +42,7 @@ class SingleChord extends HTMLElement {
   }
 
   initCanvas() {
-    const canvasRef = document.getElementById(this.chordId);
+    const canvasRef = this.shadowRoot.querySelector("canvas");
     const renderingContext = canvasRef ? canvasRef.getContext("2d") : null;
     this.state.canvas = canvasRef;
     this.state.ctx = renderingContext;
@@ -173,25 +168,51 @@ class SingleChord extends HTMLElement {
   }
 
   getCurrentTemplete() {
-    const template = `<div class="main-container">
-                              <div class="accord-description">
-                                  <div 
-                                  id=${this.chordNameId} 
-                                  class="description-element">
-                                      ${this.props.name}
-                                  </div>
-                                  <div 
-                                  id=${this.rowNumberId} 
-                                  class="description-element row-number-container">
-                                      ${this.props.startString}
-                                  </div>
-                              </div>
-                              <canvas
-                                  class="canvas-style"
-                                  id=${this.chordId}
-                                  width=${this.state.canvasWidth}
-                                  height=${this.state.canvasHeight}/>
-                          </div>`;
+    const template = `
+    <div class="main-container">
+        <div class="accord-description">
+            <div class="description-element">
+                ${this.props.name}
+            </div>
+            <div class="description-element row-number-container">
+                ${this.props.startString}
+                </div>
+        </div>
+        <canvas
+            class="canvas-style"
+            width=${this.state.canvasWidth}
+            height=${this.state.canvasHeight}/>
+    </div>                                    
+    <style>
+        .accord-description {
+        display: flex;
+        justify-content: space-between;
+        border: solid black 1px;
+        border-bottom: none;
+        font-size: 14px;
+        }
+        .description-element {
+        display: inline-block;
+        width: 50%;
+        padding-top: 2px;
+        padding-left: 5px;
+        }
+        .row-number-container {
+        display: inline-block;
+        text-align: right;
+        padding-right: 13px;
+        }
+        .main-container {
+        width: auto;
+        display: inline-block;
+        margin: 20px;
+        color: black;
+        }
+        .canvas-style {
+        border: solid black 1px;
+        border-top: none;
+        }
+    </style>`;
     return template;
   }
 
