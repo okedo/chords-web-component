@@ -1,6 +1,6 @@
 {
   "name": "chords-web-component",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Custom element for guitar chords created using web-components and canvas",
   "main": "index.js",
   "scripts": {
