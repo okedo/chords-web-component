@@ -4,7 +4,7 @@
   "description": "Custom element for guitar chords created using web-components and canvas",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
@@ -35,8 +35,13 @@
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^8.0.5",
+    "browserify": "^16.2.3",
+    "del": "^3.0.0",
     "gulp": "^4.0.0",
     "gulp-babel": "^8.0.0",
-    "gulp-uglify": "^3.0.1"
+    "gulp-concat": "^2.6.1",
+    "gulp-minify": "^3.1.0",
+    "gulp-uglify": "^3.0.1",
+    "vinyl-source-stream": "^2.0.0"
   }
 }
