@@ -19,7 +19,7 @@ gulp.task("minify", function() {
     .src("./dist/*.js")
     .pipe(concat("chord.js"))
     .pipe(minify())
-    .pipe(gulp.dest("./dist"));
+    .pipe(gulp.dest("./build"));
 });
 
 gulp.task("transpile", function() {
