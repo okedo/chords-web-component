@@ -1,4 +1,4 @@
-# Project Title
+# Chord web component
 
 Small widget for displaying of guitar chords at your website
 
@@ -10,9 +10,7 @@ You can just copy **chords.js** or **chords-min.js** into your js directory impo
 
 Copy **chords.js** or **chords-min.js** into your **js** directory.
 
-Add script **chords.js** or **chords-min.js** at the bottom of body in HTML file.
-
-And insert **<single-chord chord="C"></single-chord>** into your html:
+Add **<single-chord chord="C"></single-chord>** and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
 
 ```
 <html>

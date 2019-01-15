@@ -1,6 +1,6 @@
 ### Attributes:
 
-_All attributes ara not case-sensiteve_
+_All attributes are not case-sensiteve_
 
 ## chord
 
