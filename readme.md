@@ -12,6 +12,7 @@ You can just copy **chords.js** or **chords-min.js** from **/build** into your j
 
 Copy **chords.js** or **chords-min.js** into your **js** directory.
 
+
 Add ```<single-chord chord="C"></single-chord>``` and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
 
 ```
@@ -22,6 +23,9 @@ Add ```<single-chord chord="C"></single-chord>``` and import script **chords.js*
   </body>
 </html>
 ```
+
+Also you can run **npm i chords-web-component --save** and import script as : ``` <script src="./node_modules\chords-web-component\build\chord-min.js"></script> ```
+
 
 Detailes you can read at [USERGUIDE.md](USERGUIDE.md)
 
