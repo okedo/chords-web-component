@@ -19,25 +19,24 @@ class SingleChord extends HTMLElement {
       size: sizeList.medium,
       theme: "light"
     };
+    this.initAll();
+  }
 
-    this.idEnding = this.makeIdEnding();
+  initAll() {
+    this.id = `single-chord-component-${new Date().getTime()}-${this.makeIdEnding()}`;
 
     this.attachShadow({ mode: "open" });
     this.shadowRoot.innerHTML = "<div>Loading data</div>";
 
-    this.id = `single-chord-component-${new Date().getTime()}-${this.idEnding}`;
-
     this.chordComponentRef = document.getElementById(this.id);
     if (this.getCurrentChord(this.getChordNameAttr())) {
       this.initAttributes();
-      this.customAttributes.currentChord = this.getCurrentChord(
-        this.getChordNameAttr()
-      );
+
+      this.findBorders();
       this.initSize();
       this.shadowRoot.innerHTML = this.getCurrentTemplete();
       this.initCanvas();
 
-      this.findBorders();
       this.calculateCanvasSize();
       this.canvasSettings.canvas.setAttribute(
         "height",
@@ -77,6 +76,9 @@ class SingleChord extends HTMLElement {
     this.customAttributes.theme = this.getThemeAttr()
       ? this.getThemeAttr()
       : "light";
+    this.customAttributes.currentChord = this.getCurrentChord(
+      this.getChordNameAttr()
+    );
   }
 
   resolveSize(size) {
