@@ -10,7 +10,7 @@ You can just copy **chords.js** or **chords-min.js** into your js directory impo
 
 Copy **chords.js** or **chords-min.js** into your **js** directory.
 
-Add **<single-chord chord="C"></single-chord>** and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
+Add ```<single-chord chord="C"></single-chord>``` and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
 
 ```
 <html>
