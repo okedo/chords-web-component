@@ -2,7 +2,7 @@
   "name": "chords-web-component",
   "version": "0.0.1",
   "description": "Custom element for guitar chords created using web-components and canvas",
-  "main": "index.js",
+  "main": "./build/chord-min.js",
   "scripts": {
     "build": "gulp"
   },
