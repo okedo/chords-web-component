@@ -9,7 +9,10 @@ class SingleChord extends HTMLElement {
       canvasWidth: 390,
       canvasHeight: 140,
       maxRow: 12,
-      reflect: true,
+      reflect: {
+        horizontal: false,
+        vertical: false
+      },
       rowWidth: 30,
       stringHeight: 20
     };
@@ -23,7 +26,7 @@ class SingleChord extends HTMLElement {
   }
 
   initAll() {
-    this.id = `single-chord-component-${new Date().getTime()}-${this.makeIdEnding()}`;
+    this.id = `single-chord-component-${this.makeIdEnding()}`;
 
     this.attachShadow({ mode: "open" });
     this.shadowRoot.innerHTML = "<div>Loading data</div>";
@@ -71,14 +74,41 @@ class SingleChord extends HTMLElement {
     return this.chordComponentRef.getAttribute("theme");
   }
 
+  getReflectAttr() {
+    return this.chordComponentRef.getAttribute("reflect");
+  }
+
+  resolveReflectAttr(attrStr) {
+    const reflectModel = { horizontal: false, vertical: false };
+    const reflectData =
+      attrStr && attrStr.length ? attrStr.toLowerCase().split(/\s+|[,.]+/) : "";
+    if (reflectData) {
+      reflectData.map(el => {
+        if (el == "horizontal" || el == "x") {
+          reflectModel.horizontal = true;
+        }
+        if (el == "vertical" || el == "y") {
+          reflectModel.vertical = true;
+        }
+      });
+    }
+    this.canvasSettings.reflect = reflectModel;
+  }
+
   initAttributes() {
     this.resolveSize(this.getSizeAttr());
-    this.customAttributes.theme = this.getThemeAttr()
-      ? this.getThemeAttr()
-      : "light";
+
     this.customAttributes.currentChord = this.getCurrentChord(
       this.getChordNameAttr()
     );
+    this.resolveTheme(this.getThemeAttr());
+
+    this.resolveReflectAttr(this.getReflectAttr());
+  }
+
+  resolveTheme(themeStr) {
+    this.customAttributes.theme =
+      themeStr && themeStr.toLowerCase() == "dark" ? "dark" : "light";
   }
 
   resolveSize(size) {
@@ -101,13 +131,12 @@ class SingleChord extends HTMLElement {
   }
 
   initCanvas() {
-    const canvasRef = this.shadowRoot.querySelector("canvas");
-    const renderingContext = canvasRef ? canvasRef.getContext("2d") : null;
-    this.canvasSettings.canvas = canvasRef;
-    this.canvasSettings.ctx = renderingContext;
-    if (this.canvasSettings.reflect) {
-      this.reflectChord();
-    }
+    this.canvasSettings.canvas = this.shadowRoot.querySelector("canvas");
+    this.canvasSettings.ctx = this.canvasSettings.canvas
+      ? this.canvasSettings.canvas.getContext("2d")
+      : null;
+
+    this.resolveChordReflection();
   }
 
   drawBasis() {
@@ -254,9 +283,13 @@ class SingleChord extends HTMLElement {
     );
   }
 
-  reflectChord() {
-    //TODO create flipping logic
-    this.canvasSettings.ctx.scale(-1, 1);
+  resolveChordReflection() {
+    if (this.canvasSettings.reflect.horizontal) {
+      this.canvasSettings.canvas.style += "; transform: scaleX(-1);";
+    }
+    if (this.canvasSettings.reflect.vertical) {
+      this.canvasSettings.canvas.style += "; transform: scaleY(-1);";
+    }
   }
 
   getCurrentTemplete() {
@@ -322,14 +355,13 @@ class SingleChord extends HTMLElement {
   }
 
   makeIdEnding() {
-    var text = "";
-    var possible =
+    let text = "-";
+    const possible =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     for (var i = 0; i < 5; i++)
       text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
+    return new Date().getTime() + text;
   }
 }
 
