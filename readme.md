@@ -4,6 +4,8 @@ Small widget for displaying of guitar chords at your website
 
 ## Getting Started
 
+![example image](example.png)
+
 You can just copy **chords.js** or **chords-min.js** from **/build** into your js directory import script and insert **<single-chord chord="C"></single-chord>** into your html
 
 ### Installing
