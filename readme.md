@@ -31,6 +31,8 @@ Detailes you can read at [USERGUIDE.md](USERGUIDE.md)
 
 ## Versioning
 
+Changelog [CHANGELOG](CHANGELOG.md).
+
 I use [Github](https://github.com/) for versioning. For the versions available, see the [Chord-Web-Component](https://github.com/okedo/chords-web-component).
 
 ## Authors
