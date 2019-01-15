@@ -42,5 +42,5 @@ gulp.task("browserify", function() {
 
 gulp.task(
   "default",
-  gulp.series("clean", "transpile", "browserify", "minify", "clean")
+  gulp.series("clean-all", "transpile", "browserify", "minify", "clean")
 );
