@@ -1,9 +1,12 @@
-import { chordList } from "./chord-list";
-import { styleConstants, sizeList } from "./style-constants";
+import { styleConstants } from "./style.constant";
+import { AttrGetter } from "./attribute-getter";
+import { makeIdEnding } from "./common-tools";
+import { CanvasDrawTool } from "./canvas-draw-tool";
 
-class SingleChord extends HTMLElement {
+export class ChordCreator extends HTMLElement {
   constructor() {
     super();
+    this.attrGetter;
 
     this.canvasSettings = {
       canvasWidth: 390,
@@ -18,200 +21,166 @@ class SingleChord extends HTMLElement {
     };
 
     this.customAttributes = {
-      currentChord: {},
-      size: sizeList.medium,
+      chords: [],
+      size: null,
       theme: "light"
     };
     this.initAll();
   }
 
   initAll() {
-    this.id = `single-chord-component-${this.makeIdEnding()}`;
+    this.id = `single-chord-component-${makeIdEnding()}`;
 
     this.attachShadow({ mode: "open" });
     this.shadowRoot.innerHTML = "<div>Loading data</div>";
 
     this.chordComponentRef = document.getElementById(this.id);
-    if (this.getCurrentChord(this.getChordNameAttr())) {
+
+    this.attrGetter = new AttrGetter(this.chordComponentRef);
+
+    if (this.attrGetter.resolveCurrentChord()) {
       this.initAttributes();
 
-      this.findBorders();
-      this.initSize();
-      this.shadowRoot.innerHTML = this.getCurrentTemplete();
-      this.initCanvas();
-
-      this.calculateCanvasSize();
-      this.canvasSettings.canvas.setAttribute(
-        "height",
-        this.canvasSettings.canvasHeight
-      );
-      this.canvasSettings.canvas.setAttribute(
-        "width",
-        this.canvasSettings.canvasWidth
-      );
-      this.drawChord();
+      this.shadowRoot.innerHTML = this.resolveFinalTemplate();
+      this.customAttributes.chords.map(chord => {
+        this.resolveCanvas(chord);
+      });
     } else {
       this.shadowRoot.innerHTML = "<div>Unknown chord</div>";
     }
   }
 
+  initAttributes() {
+    this.initChords();
+    this.initSize();
+    this.initTheme();
+    this.initReflectAttr();
+  }
+
   initSize() {
+    this.customAttributes.size = this.attrGetter.resolveSize();
     this.canvasSettings.stringHeight =
       this.canvasSettings.stringHeight * this.customAttributes.size;
     this.canvasSettings.rowWidth =
       this.canvasSettings.stringHeight * this.customAttributes.size;
   }
 
-  getChordNameAttr() {
-    return this.chordComponentRef.getAttribute("chord");
+  initCurrentChord() {
+    this.customAttributes.currentChord = this.attrGetter.resolveCurrentChord();
+  }
+  initChords() {
+    this.customAttributes.chords = this.attrGetter.resolveChordArray();
   }
 
-  getSizeAttr() {
-    return this.chordComponentRef.getAttribute("size");
+  initReflectAttr() {
+    this.canvasSettings.reflect = this.attrGetter.resolveReflectAttr();
   }
 
-  getThemeAttr() {
-    return this.chordComponentRef.getAttribute("theme");
+  initTheme() {
+    this.customAttributes.theme = this.attrGetter.resolveTheme();
   }
 
-  getReflectAttr() {
-    return this.chordComponentRef.getAttribute("reflect");
+  initCanvas(chord) {
+    const canvasRef = { canvas: {}, ctx: {} };
+    canvasRef.canvas = this.shadowRoot.getElementById(chord.componentCanvasId);
+    canvasRef.ctx = canvasRef.canvas ? canvasRef.canvas.getContext("2d") : null;
+    return canvasRef;
   }
 
-  resolveReflectAttr(attrStr) {
-    const reflectModel = { horizontal: false, vertical: false };
-    const reflectData =
-      attrStr && attrStr.length ? attrStr.toLowerCase().split(/\s+|[,.]+/) : "";
-    if (reflectData) {
-      reflectData.map(el => {
-        if (el == "horizontal" || el == "x") {
-          reflectModel.horizontal = true;
-        }
-        if (el == "vertical" || el == "y") {
-          reflectModel.vertical = true;
-        }
-      });
-    }
-    this.canvasSettings.reflect = reflectModel;
-  }
+  resolveCanvas(chord) {
+    const canvas = {
+      ref: this.initCanvas(chord),
+      canvasSettings: {
+        canvasHeight:
+          this.canvasSettings.canvasHeight * this.customAttributes.size,
+        canvasWidth:
+          this.canvasSettings.canvasWidth * this.customAttributes.size
+      }
+    };
 
-  initAttributes() {
-    this.resolveSize(this.getSizeAttr());
-
-    this.customAttributes.currentChord = this.getCurrentChord(
-      this.getChordNameAttr()
+    canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(
+      chord,
+      this.findBorders(chord)
     );
-    this.resolveTheme(this.getThemeAttr());
-
-    this.resolveReflectAttr(this.getReflectAttr());
+    this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
+    this.drawChord(chord, canvas);
+    this.resolveChordReflection(canvas.ref.canvas);
   }
 
-  resolveTheme(themeStr) {
-    this.customAttributes.theme =
-      themeStr && themeStr.toLowerCase() == "dark" ? "dark" : "light";
+  updateCanvasSize(canvas, canvasSettings) {
+    canvas.setAttribute("height", canvasSettings.canvasHeight);
+    canvas.setAttribute("width", canvasSettings.canvasWidth);
   }
 
-  resolveSize(size) {
-    const sizeParsed = parseFloat("" + size);
-    if (isNaN(sizeParsed)) {
-      this.customAttributes.size = sizeList[size]
-        ? sizeList[size]
-        : sizeList.medium;
-    } else this.customAttributes.size = sizeParsed;
-    this.canvasSettings.canvasHeight =
-      this.canvasSettings.canvasHeight * this.customAttributes.size;
-    this.canvasSettings.canvasWidth =
-      this.canvasSettings.canvasWidth * this.customAttributes.size;
-  }
-
-  getCurrentChord(chordName) {
-    return chordList.find(
-      el => el.name.toUpperCase() == chordName.toUpperCase()
-    );
-  }
-
-  initCanvas() {
-    this.canvasSettings.canvas = this.shadowRoot.querySelector("canvas");
-    this.canvasSettings.ctx = this.canvasSettings.canvas
-      ? this.canvasSettings.canvas.getContext("2d")
-      : null;
-
-    this.resolveChordReflection();
-  }
-
-  drawBasis() {
+  drawBasis(canvas) {
     this.drawRectangle(
+      canvas.ref,
       styleConstants.colors.basisColor[this.customAttributes.theme],
       0,
       0,
-      this.canvasSettings.canvasHeight,
-      this.canvasSettings.canvasWidth
+      canvas.canvasSettings.canvasHeight,
+      canvas.canvasSettings.canvasWidth
     );
     for (let i = 1; i <= 12; i++) {
       this.drawALine(
+        canvas.ref,
         styleConstants.colors.rowDividerColor[this.customAttributes.theme],
         i * this.canvasSettings.rowWidth,
         0,
         i * this.canvasSettings.rowWidth,
-        this.canvasSettings.canvasHeight
+        canvas.canvasSettings.canvasHeight
       );
     }
     for (let i = 0; i <= 6; i++) {
       this.drawALine(
+        canvas.ref,
         styleConstants.colors.stringsColor[this.customAttributes.theme],
         0,
         i * this.canvasSettings.stringHeight,
-        this.canvasSettings.canvasWidth,
+        canvas.canvasSettings.canvasWidth,
         i * this.canvasSettings.stringHeight
       );
     }
   }
 
-  drawRectangle(color, positionY, positionX, width, height) {
-    const ctx = this.canvasSettings.ctx;
+  drawRectangle(canvas, color, positionY, positionX, width, height) {
+    const ctx = canvas.ctx;
     if (ctx) {
       ctx.fillStyle = color;
       ctx.fillRect(positionX, positionY, height, width);
     }
   }
 
-  drawChord() {
+  drawChord(chord, canvas) {
     const stringHeight = this.canvasSettings.stringHeight;
     let currentStringHigth = this.canvasSettings.stringHeight;
     const pressedStringRows = [];
     const circleColor =
       styleConstants.colors.circleColor[this.customAttributes.theme];
-    this.drawBasis();
-    for (const stringG in this.customAttributes.currentChord.structure
-      .strings) {
-      if (
-        this.customAttributes.currentChord.structure.strings.hasOwnProperty(
-          stringG
-        )
-      ) {
-        this.customAttributes.currentChord.structure.strings[stringG].forEach(
-          element => {
-            pressedStringRows.push(element);
-            this.drawCircle(
-              5 * this.customAttributes.size,
-              circleColor,
-              circleColor,
-              this.calculateElementHorizontalPosition(element),
-              currentStringHigth
-            );
-          }
-        );
+    this.drawBasis(canvas);
+    for (const stringG in chord.structure.strings) {
+      if (chord.structure.strings.hasOwnProperty(stringG)) {
+        chord.structure.strings[stringG].forEach(element => {
+          pressedStringRows.push(element);
+          this.drawCircle(
+            canvas.ref,
+            5 * this.customAttributes.size,
+            circleColor,
+            circleColor,
+            this.calculateElementHorizontalPosition(canvas, chord, element),
+            currentStringHigth
+          );
+        });
         currentStringHigth += stringHeight;
       }
     }
-    const minRow = Math.min.apply(null, pressedStringRows);
-    if (pressedStringRows.filter(el => el === minRow).length === 6) {
-      this.drawBare(minRow);
+    if (pressedStringRows.filter(el => el === chord.startString).length === 6) {
+      this.drawBare(canvas, chord);
     }
   }
 
-  findBorders() {
-    const strings = this.customAttributes.currentChord.structure.strings;
+  findBorders(chord) {
+    const strings = chord.structure.strings;
     let max = 1;
     let min = 12;
     for (const st in strings) {
@@ -227,29 +196,25 @@ class SingleChord extends HTMLElement {
       }
     }
 
-    this.canvasSettings.maxRow =
-      max - this.customAttributes.currentChord.startString < 2 ? max + 1 : max;
+    return max - chord.startString < 2 ? max + 1 : max;
   }
 
-  calculateElementHorizontalPosition(elementPosition) {
-    const elementPos =
-      elementPosition - this.customAttributes.currentChord.startString;
+  calculateElementHorizontalPosition(canvas, chord, elementPosition) {
+    const elementPos = elementPosition - chord.startString;
     const rowWidth = this.canvasSettings.rowWidth;
     return (
-      this.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5
+      canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5
     );
   }
 
-  calculateCanvasSize() {
-    this.canvasSettings.canvasWidth =
-      (1 +
-        this.canvasSettings.maxRow -
-        this.customAttributes.currentChord.startString) *
-      this.canvasSettings.rowWidth;
+  calculateCanvasSize(chord, maxRow) {
+    const canvasWidth =
+      (1 + maxRow - chord.startString) * this.canvasSettings.rowWidth;
+    return canvasWidth;
   }
 
-  drawCircle(size, color, fill, horizontal, vertical) {
-    const ctx = this.canvasSettings.ctx;
+  drawCircle(canvas, size, color, fill, horizontal, vertical) {
+    const ctx = canvas.ctx;
     if (ctx) {
       ctx.strokeStyle = color;
       ctx.fillStyle = fill;
@@ -260,8 +225,8 @@ class SingleChord extends HTMLElement {
     }
   }
 
-  drawALine(color, xStart, yStart, xEnd, yEnd, lineWidth = 0) {
-    const ctx = this.canvasSettings.ctx;
+  drawALine(canvas, color, xStart, yStart, xEnd, yEnd, lineWidth = 0) {
+    const ctx = canvas.ctx;
     if (ctx) {
       ctx.strokeStyle = color;
       ctx.beginPath();
@@ -272,97 +237,98 @@ class SingleChord extends HTMLElement {
     }
   }
 
-  drawBare(row) {
+  drawBare(canvas, chord) {
+    const calculatedPos = this.calculateElementHorizontalPosition(
+      canvas,
+      chord,
+      chord.startString
+    );
     this.drawALine(
+      canvas.ref,
       styleConstants.colors.circleColor[this.customAttributes.theme],
-      this.calculateElementHorizontalPosition(row),
+      calculatedPos,
       5 * this.customAttributes.size,
-      this.calculateElementHorizontalPosition(row),
-      this.canvasSettings.canvasHeight - 5,
+      calculatedPos,
+      canvas.canvasSettings.canvasHeight - 5,
       15 * this.customAttributes.size
     );
   }
 
-  resolveChordReflection() {
+  resolveChordReflection(canvas) {
     if (this.canvasSettings.reflect.horizontal) {
-      this.canvasSettings.canvas.style += "; transform: scaleX(-1);";
+      canvas.style += "; transform: scaleX(-1);";
     }
     if (this.canvasSettings.reflect.vertical) {
-      this.canvasSettings.canvas.style += "; transform: scaleY(-1);";
+      canvas.style += "; transform: scaleY(-1);";
     }
   }
 
-  getCurrentTemplete() {
+  getCommonTemplete(chord, canvasId) {
     const template = `
     <div class="main-container">
         <div class="accord-description">
             <div class="description-element">
-                ${this.customAttributes.currentChord.name}
+                ${chord.name}
             </div>
             <div class="description-element row-number-container">
-                ${this.customAttributes.currentChord.startString}
+                ${chord.startString}
                 </div>
         </div>
-        <canvas
+        <canvas id=${canvasId}
             class="canvas-style"
             width=${this.canvasSettings.canvasWidth}
             height=${this.canvasSettings.canvasHeight}/>
     </div>                                    
-    <style>
-        .accord-description {
-            display: flex;
-            justify-content: space-between;
-            border: solid ${
-              styleConstants.colors.borderColor[this.customAttributes.theme]
-            } 1px;
-            border-bottom: none;
-            font-size: ${styleConstants.fontSize.normal *
-              this.customAttributes.size}px;
-            color: ${
-              styleConstants.colors.textColor[this.customAttributes.theme]
-            };
-            background-color: ${
-              styleConstants.colors.backgroundColor[this.customAttributes.theme]
-            };
-        }
-        .description-element {
-            display: inline-block;
-            width: 50%;
-            padding-top: 2px;
-            padding-left: 5px;
-        }
-            .row-number-container {
-            display: inline-block;
-            text-align: right;
-            padding-right: 13px;
-        }
-        .main-container {
-            width: auto;
-            display: inline-block;
-            margin: 20px;
-            color: ${
-              styleConstants.colors.borderColor[this.customAttributes.theme]
-            };
-        }
-        .canvas-style {
-            border: solid ${
-              styleConstants.colors.borderColor[this.customAttributes.theme]
-            } 1px;
-            border-top: none;
-        }
-    </style>`;
+    `;
     return template;
   }
 
-  makeIdEnding() {
-    let text = "-";
-    const possible =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (var i = 0; i < 5; i++)
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    return new Date().getTime() + text;
+  resolveFinalTemplate() {
+    const styles = `<style>
+    .accord-description {
+        display: flex;
+        justify-content: space-between;
+        border: solid ${
+          styleConstants.colors.borderColor[this.customAttributes.theme]
+        } 1px;
+        border-bottom: none;
+        font-size: ${styleConstants.fontSize.normal *
+          this.customAttributes.size}px;
+        color: ${styleConstants.colors.textColor[this.customAttributes.theme]};
+        background-color: ${
+          styleConstants.colors.backgroundColor[this.customAttributes.theme]
+        };
+    }
+    .description-element {
+        display: inline-block;
+        width: 50%;
+        padding-top: 2px;
+        padding-left: 5px;
+    }
+        .row-number-container {
+        display: inline-block;
+        text-align: right;
+        padding-right: 13px;
+    }
+    .main-container {
+        width: auto;
+        display: inline-block;
+        margin: 20px;
+        color: ${
+          styleConstants.colors.borderColor[this.customAttributes.theme]
+        };
+    }
+    .canvas-style {
+        border: solid ${
+          styleConstants.colors.borderColor[this.customAttributes.theme]
+        } 1px;
+        border-top: none;
+    }
+</style>`;
+    let template = "";
+    this.customAttributes.chords.map(el => {
+      template += this.getCommonTemplete(el, el.componentCanvasId);
+    });
+    return template + styles;
   }
 }
-
-customElements.define("single-chord", SingleChord);
