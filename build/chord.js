@@ -151,7 +151,7 @@ function (_HTMLElement) {
 
       var template = "";
       this.customAttributes.chords.map(function (el) {
-        template += _this3.templatesHolder.getCommonTemplete(el.name, el.componentCanvasId, el.startString, _this3.canvasSettings.canvasWidth, _this3.canvasSettings.canvasHeight);
+        template += _this3.templatesHolder.getCommonTemplete(el.name, el.componentCanvasId, el.startString, _this3.canvasSettings.canvasWidth, _this3.canvasSettings.canvasHeight, _this3.canvasSettings.reflect.horizontal);
       });
       return template + styles;
     }
@@ -894,8 +894,8 @@ function () {
 
   _createClass(TemplatesHolder, [{
     key: "getCommonTemplete",
-    value: function getCommonTemplete(chordName, canvasId, startString, canvasWidth, canvasHeight) {
-      var template = "\n    <div class=\"main-container\">\n        <div class=\"accord-description\">\n            <div class=\"description-element\">\n                ".concat(chordName, "\n            </div>\n            <div class=\"description-element row-number-container\">\n                ").concat(startString, "\n                </div>\n        </div>\n        <canvas id=").concat(canvasId, "\n            class=\"canvas-style\"\n            width=").concat(canvasWidth, "\n            height=").concat(canvasHeight, "/>\n    </div> ");
+    value: function getCommonTemplete(chordName, canvasId, startString, canvasWidth, canvasHeight, reflectedHorizontally) {
+      var template = "\n    <div class=\"main-container\">\n        <div class=\"accord-description\">\n            <div class=\"description-element\">\n                ".concat(reflectedHorizontally ? startString : chordName, "\n            </div>\n            <div class=\"description-element row-number-container\">\n                ").concat(reflectedHorizontally ? chordName : startString, "\n                </div>\n        </div>\n        <canvas id=").concat(canvasId, "\n            class=\"canvas-style\"\n            width=").concat(canvasWidth, "\n            height=").concat(canvasHeight, "/>\n    </div> ");
       return template;
     }
   }, {

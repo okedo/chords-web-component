@@ -99,7 +99,8 @@ export class ChordCreator extends HTMLElement {
         el.componentCanvasId,
         el.startString,
         this.canvasSettings.canvasWidth,
-        this.canvasSettings.canvasHeight
+        this.canvasSettings.canvasHeight,
+        this.canvasSettings.reflect.horizontal
       );
     });
     return template + styles;

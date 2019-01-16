@@ -4,16 +4,17 @@ export class TemplatesHolder {
     canvasId,
     startString,
     canvasWidth,
-    canvasHeight
+    canvasHeight,
+    reflectedHorizontally
   ) {
     const template = `
     <div class="main-container">
         <div class="accord-description">
             <div class="description-element">
-                ${chordName}
+                ${reflectedHorizontally ? startString : chordName}
             </div>
             <div class="description-element row-number-container">
-                ${startString}
+                ${reflectedHorizontally ? chordName : startString}
                 </div>
         </div>
         <canvas id=${canvasId}
