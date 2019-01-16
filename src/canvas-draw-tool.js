@@ -1,4 +1,4 @@
-import { styleConstants } from "./style.constant";
+import { STYLE_CONSTANTS } from "./style-tools";
 
 export class CanvasDrawTool {
   constructor(canvasRef, chordData, customAttributes) {
@@ -49,7 +49,7 @@ export class CanvasDrawTool {
 
   drawBasis() {
     this.drawRectangle(
-      styleConstants.colors.basisColor[this.canvas.customAttributes.theme],
+      STYLE_CONSTANTS.colors.basisColor[this.canvas.customAttributes.theme],
       0,
       0,
       this.canvas.canvasSettings.canvasHeight,
@@ -57,7 +57,7 @@ export class CanvasDrawTool {
     );
     for (let i = 1; i <= 12; i++) {
       this.drawALine(
-        styleConstants.colors.rowDividerColor[
+        STYLE_CONSTANTS.colors.rowDividerColor[
           this.canvas.customAttributes.theme
         ],
         i * this.canvas.canvasSettings.rowWidth,
@@ -68,7 +68,7 @@ export class CanvasDrawTool {
     }
     for (let i = 0; i <= 6; i++) {
       this.drawALine(
-        styleConstants.colors.stringsColor[this.canvas.customAttributes.theme],
+        STYLE_CONSTANTS.colors.stringsColor[this.canvas.customAttributes.theme],
         0,
         i * this.canvas.canvasSettings.stringHeight,
         this.canvas.canvasSettings.canvasWidth,
@@ -89,7 +89,7 @@ export class CanvasDrawTool {
     let currentStringHigth = this.canvas.canvasSettings.stringHeight;
     const pressedStringRows = [];
     const circleColor =
-      styleConstants.colors.circleColor[this.canvas.customAttributes.theme];
+      STYLE_CONSTANTS.colors.circleColor[this.canvas.customAttributes.theme];
     this.drawBasis();
     for (const stringG in this.chordData.structure.strings) {
       if (this.chordData.structure.strings.hasOwnProperty(stringG)) {
@@ -180,7 +180,7 @@ export class CanvasDrawTool {
       this.chordData.startString
     );
     this.drawALine(
-      styleConstants.colors.circleColor[this.canvas.customAttributes.theme],
+      STYLE_CONSTANTS.colors.circleColor[this.canvas.customAttributes.theme],
       calculatedPos,
       5 * this.canvas.customAttributes.size,
       calculatedPos,

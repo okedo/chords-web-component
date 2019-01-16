@@ -12,7 +12,7 @@ Object.defineProperty(exports, "makeIdEnding", {
 });
 exports.AttrGetter = void 0;
 
-var _style = require("./style.constant");
+var _styleTools = require("./style-tools");
 
 var _chordList = require("./chord-list.constant");
 
@@ -38,8 +38,8 @@ function () {
   }
 
   _createClass(AttrGetter, [{
-    key: "getChords",
-    value: function getChords() {
+    key: "getChordsAttr",
+    value: function getChordsAttr() {
       return this.componentRef.getAttribute("chords");
     }
   }, {
@@ -58,8 +58,26 @@ function () {
       return this.componentRef.getAttribute("reflect");
     }
   }, {
-    key: "resolveReflectAttr",
-    value: function resolveReflectAttr() {
+    key: "resolveChordNamesArray",
+    value: function resolveChordNamesArray() {
+      var chordsData = this.getChordsAttr();
+      var chordsDataArr = [];
+
+      if (chordsData) {
+        chordsData.split(/\s+|[,.]+/).map(function (element) {
+          if (_chordList.chordList.find(function (el) {
+            return el.name.toLowerCase() == element.toLowerCase();
+          })) {
+            chordsDataArr.push(element.toLowerCase());
+          }
+        });
+      }
+
+      return chordsDataArr;
+    }
+  }, {
+    key: "reflect",
+    get: function get() {
       var reflectModel = {
         horizontal: false,
         vertical: false
@@ -81,53 +99,26 @@ function () {
       return reflectModel;
     }
   }, {
-    key: "resolveTheme",
-    value: function resolveTheme() {
+    key: "theme",
+    get: function get() {
       return this.getThemeAttr() && this.getThemeAttr().toLowerCase() == "dark" ? "dark" : "light";
     }
   }, {
-    key: "resolveSize",
-    value: function resolveSize() {
+    key: "size",
+    get: function get() {
       var tempSize = this.getSizeAttr();
       var sizeParsed = parseFloat("" + tempSize);
-      var size = _style.sizeList.medium;
+      var size = _styleTools.sizeList.medium;
 
       if (isNaN(sizeParsed)) {
-        size = _style.sizeList[tempSize] ? _style.sizeList[tempSize] : _style.sizeList.medium;
+        size = _styleTools.sizeList[tempSize] ? _styleTools.sizeList[tempSize] : _styleTools.sizeList.medium;
       } else size = sizeParsed;
 
       return size;
     }
   }, {
-    key: "resolveCurrentChord",
-    value: function resolveCurrentChord() {
-      var _this = this;
-
-      return this.getChords() ? _chordList.chordList.find(function (el) {
-        return el.name.toUpperCase() == _this.getChords().toUpperCase();
-      }) : "";
-    }
-  }, {
-    key: "resolveChordNamesArray",
-    value: function resolveChordNamesArray() {
-      var chordsData = this.getChords();
-      var chordsDataArr = [];
-
-      if (chordsData) {
-        chordsData.split(/\s+|[,.]+/).map(function (element) {
-          if (_chordList.chordList.find(function (el) {
-            return el.name.toLowerCase() == element.toLowerCase();
-          })) {
-            chordsDataArr.push(element.toLowerCase());
-          }
-        });
-      }
-
-      return chordsDataArr;
-    }
-  }, {
-    key: "resolveChordArray",
-    value: function resolveChordArray() {
+    key: "chordArray",
+    get: function get() {
       var chordsArr = [];
       this.resolveChordNamesArray().map(function (el) {
         _chordList.chordList.map(function (element) {
@@ -146,7 +137,7 @@ function () {
 }();
 
 exports.AttrGetter = AttrGetter;
-},{"./chord-list.constant":3,"./common-tools":5,"./style.constant":7}],2:[function(require,module,exports){
+},{"./chord-list.constant":3,"./common-tools":5,"./style-tools":7}],2:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -154,7 +145,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.CanvasDrawTool = void 0;
 
-var _style = require("./style.constant");
+var _styleTools = require("./style-tools");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -207,14 +198,14 @@ function () {
   }, {
     key: "drawBasis",
     value: function drawBasis() {
-      this.drawRectangle(_style.styleConstants.colors.basisColor[this.canvas.customAttributes.theme], 0, 0, this.canvas.canvasSettings.canvasHeight, this.canvas.canvasSettings.canvasWidth);
+      this.drawRectangle(_styleTools.STYLE_CONSTANTS.colors.basisColor[this.canvas.customAttributes.theme], 0, 0, this.canvas.canvasSettings.canvasHeight, this.canvas.canvasSettings.canvasWidth);
 
       for (var i = 1; i <= 12; i++) {
-        this.drawALine(_style.styleConstants.colors.rowDividerColor[this.canvas.customAttributes.theme], i * this.canvas.canvasSettings.rowWidth, 0, i * this.canvas.canvasSettings.rowWidth, this.canvas.canvasSettings.canvasHeight);
+        this.drawALine(_styleTools.STYLE_CONSTANTS.colors.rowDividerColor[this.canvas.customAttributes.theme], i * this.canvas.canvasSettings.rowWidth, 0, i * this.canvas.canvasSettings.rowWidth, this.canvas.canvasSettings.canvasHeight);
       }
 
       for (var _i = 0; _i <= 6; _i++) {
-        this.drawALine(_style.styleConstants.colors.stringsColor[this.canvas.customAttributes.theme], 0, _i * this.canvas.canvasSettings.stringHeight, this.canvas.canvasSettings.canvasWidth, _i * this.canvas.canvasSettings.stringHeight);
+        this.drawALine(_styleTools.STYLE_CONSTANTS.colors.stringsColor[this.canvas.customAttributes.theme], 0, _i * this.canvas.canvasSettings.stringHeight, this.canvas.canvasSettings.canvasWidth, _i * this.canvas.canvasSettings.stringHeight);
       }
     }
   }, {
@@ -234,7 +225,7 @@ function () {
 
       var currentStringHigth = this.canvas.canvasSettings.stringHeight;
       var pressedStringRows = [];
-      var circleColor = _style.styleConstants.colors.circleColor[this.canvas.customAttributes.theme];
+      var circleColor = _styleTools.STYLE_CONSTANTS.colors.circleColor[this.canvas.customAttributes.theme];
       this.drawBasis();
 
       for (var stringG in this.chordData.structure.strings) {
@@ -316,7 +307,7 @@ function () {
     key: "drawBare",
     value: function drawBare() {
       var calculatedPos = this.calculateElementHorizontalPosition(this.chordData.startString);
-      this.drawALine(_style.styleConstants.colors.circleColor[this.canvas.customAttributes.theme], calculatedPos, 5 * this.canvas.customAttributes.size, calculatedPos, this.canvas.canvasSettings.canvasHeight - 5, 15 * this.canvas.customAttributes.size);
+      this.drawALine(_styleTools.STYLE_CONSTANTS.colors.circleColor[this.canvas.customAttributes.theme], calculatedPos, 5 * this.canvas.customAttributes.size, calculatedPos, this.canvas.canvasSettings.canvasHeight - 5, 15 * this.canvas.customAttributes.size);
     }
   }, {
     key: "resolveChordReflection",
@@ -330,7 +321,7 @@ function () {
 }();
 
 exports.CanvasDrawTool = CanvasDrawTool;
-},{"./style.constant":7}],3:[function(require,module,exports){
+},{"./style-tools":7}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -641,13 +632,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.ChordCreator = void 0;
 
-var _style = require("./style.constant");
+var _styleTools = require("./style-tools");
 
 var _attributeGetter = require("./attribute-getter");
 
 var _commonTools = require("./common-tools");
 
 var _canvasDrawTool = require("./canvas-draw-tool");
+
+var _templates = require("./templates");
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -691,6 +684,7 @@ function (_HTMLElement) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(ChordCreator).call(this));
     _this.attrGetter;
+    _this.templatesHolder = new _templates.TemplatesHolder();
     _this.canvasSettings = {
       reflect: {
         horizontal: false,
@@ -717,11 +711,11 @@ function (_HTMLElement) {
       this.attachShadow({
         mode: "open"
       });
-      this.shadowRoot.innerHTML = "<div>Loading data</div>";
+      this.shadowRoot.innerHTML = this.templatesHolder.loadingTemplate;
       this.chordComponentRef = document.getElementById(this.id);
       this.attrGetter = new _attributeGetter.AttrGetter(this.chordComponentRef);
 
-      if (this.attrGetter.resolveChordArray().length) {
+      if (this.attrGetter.chordArray.length) {
         this.initAttributes();
         this.shadowRoot.innerHTML = this.resolveFinalTemplate();
         this.customAttributes.chords.map(function (chord) {
@@ -732,7 +726,7 @@ function (_HTMLElement) {
           new _canvasDrawTool.CanvasDrawTool(_this2.initCanvas(chord), chord, customAttributes).draw();
         });
       } else {
-        this.shadowRoot.innerHTML = "<div>Unknown chord</div>";
+        this.shadowRoot.innerHTML = this.templatesHolder.unknownChordTemplate + _styleTools.stylesHolder.getUnknownChordTemplateStyleTag();
       }
     }
   }, {
@@ -746,22 +740,22 @@ function (_HTMLElement) {
   }, {
     key: "initSize",
     value: function initSize() {
-      this.customAttributes.size = this.attrGetter.resolveSize();
+      this.customAttributes.size = this.attrGetter.size;
     }
   }, {
     key: "initChords",
     value: function initChords() {
-      this.customAttributes.chords = this.attrGetter.resolveChordArray();
+      this.customAttributes.chords = this.attrGetter.chordArray;
     }
   }, {
     key: "initReflectAttr",
     value: function initReflectAttr() {
-      this.canvasSettings.reflect = this.attrGetter.resolveReflectAttr();
+      this.canvasSettings.reflect = this.attrGetter.reflect;
     }
   }, {
     key: "initTheme",
     value: function initTheme() {
-      this.customAttributes.theme = this.attrGetter.resolveTheme();
+      this.customAttributes.theme = this.attrGetter.theme;
     }
   }, {
     key: "initCanvas",
@@ -775,20 +769,15 @@ function (_HTMLElement) {
       return canvasRef;
     }
   }, {
-    key: "getCommonTemplete",
-    value: function getCommonTemplete(chord, canvasId) {
-      var template = "\n    <div class=\"main-container\">\n        <div class=\"accord-description\">\n            <div class=\"description-element\">\n                ".concat(chord.name, "\n            </div>\n            <div class=\"description-element row-number-container\">\n                ").concat(chord.startString, "\n                </div>\n        </div>\n        <canvas id=").concat(canvasId, "\n            class=\"canvas-style\"\n            width=").concat(this.canvasSettings.canvasWidth, "\n            height=").concat(this.canvasSettings.canvasHeight, "/>\n    </div>                                    \n    ");
-      return template;
-    }
-  }, {
     key: "resolveFinalTemplate",
     value: function resolveFinalTemplate() {
       var _this3 = this;
 
-      var styles = "<style>\n    .accord-description {\n        display: flex;\n        justify-content: space-between;\n        border: solid ".concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], " 1px;\n        border-bottom: none;\n        font-size: ").concat(_style.styleConstants.fontSize.normal * this.customAttributes.size, "px;\n        color: ").concat(_style.styleConstants.colors.textColor[this.customAttributes.theme], ";\n        background-color: ").concat(_style.styleConstants.colors.backgroundColor[this.customAttributes.theme], ";\n    }\n    .description-element {\n        display: inline-block;\n        width: 50%;\n        padding-top: 2px;\n        padding-left: 5px;\n    }\n        .row-number-container {\n        display: inline-block;\n        text-align: right;\n        padding-right: 13px;\n    }\n    .main-container {\n        width: auto;\n        display: inline-block;\n        margin: 20px;\n        color: ").concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], ";\n    }\n    .canvas-style {\n        border: solid ").concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], " 1px;\n        border-top: none;\n    }\n</style>");
+      var styles = _styleTools.stylesHolder.getChordContainerStyleTag(this.customAttributes.theme, this.customAttributes.size);
+
       var template = "";
       this.customAttributes.chords.map(function (el) {
-        template += _this3.getCommonTemplete(el, el.componentCanvasId);
+        template += _this3.templatesHolder.getCommonTemplete(el.name, el.componentCanvasId, el.startString, _this3.canvasSettings.canvasWidth, _this3.canvasSettings.canvasHeight);
       });
       return template + styles;
     }
@@ -798,7 +787,7 @@ function (_HTMLElement) {
 }(_wrapNativeSuper(HTMLElement));
 
 exports.ChordCreator = ChordCreator;
-},{"./attribute-getter":1,"./canvas-draw-tool":2,"./common-tools":5,"./style.constant":7}],5:[function(require,module,exports){
+},{"./attribute-getter":1,"./canvas-draw-tool":2,"./common-tools":5,"./style-tools":7,"./templates":8}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -828,14 +817,14 @@ customElements.define("chord-creator", _chord.ChordCreator);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.sizeList = exports.styleConstants = void 0;
+exports.stylesHolder = exports.sizeList = exports.STYLE_CONSTANTS = void 0;
 var sizeList = {
   medium: 1,
   large: 2,
   small: 0.9
 };
 exports.sizeList = sizeList;
-var styleConstants = {
+var STYLE_CONSTANTS = {
   fontSize: {
     normal: 14
   },
@@ -870,5 +859,59 @@ var styleConstants = {
     }
   }
 };
-exports.styleConstants = styleConstants;
+exports.STYLE_CONSTANTS = STYLE_CONSTANTS;
+var stylesHolder = {
+  getChordContainerStyleTag: function getChordContainerStyleTag(theme, size) {
+    var styles = "<style>\n      .accord-description {\n          display: flex;\n          justify-content: space-between;\n          border: solid ".concat(STYLE_CONSTANTS.colors.borderColor[theme], " 1px;\n          border-bottom: none;\n          font-size: ").concat(STYLE_CONSTANTS.fontSize.normal * size, "px;\n          color: ").concat(STYLE_CONSTANTS.colors.textColor[theme], ";\n          background-color: ").concat(STYLE_CONSTANTS.colors.backgroundColor[theme], ";\n      }\n      .description-element {\n          display: inline-block;\n          width: 50%;\n          padding-top: 2px;\n          padding-left: 5px;\n      }\n          .row-number-container {\n          display: inline-block;\n          text-align: right;\n          padding-right: 13px;\n      }\n      .main-container {\n          width: auto;\n          display: inline-block;\n          margin: 20px;\n          color: ").concat(STYLE_CONSTANTS.colors.borderColor[theme], ";\n      }\n      .canvas-style {\n          border: solid ").concat(STYLE_CONSTANTS.colors.borderColor[theme], " 1px;\n          border-top: none;\n      }\n  </style>");
+    return styles;
+  },
+  getUnknownChordTemplateStyleTag: function getUnknownChordTemplateStyleTag() {
+    var style = "<style>\n      .unknown-chord {\n        display: inline-block;\n        margin: 20px;\n      }\n    </style";
+    return style;
+  }
+};
+exports.stylesHolder = stylesHolder;
+},{}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TemplatesHolder = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var TemplatesHolder =
+/*#__PURE__*/
+function () {
+  function TemplatesHolder() {
+    _classCallCheck(this, TemplatesHolder);
+  }
+
+  _createClass(TemplatesHolder, [{
+    key: "getCommonTemplete",
+    value: function getCommonTemplete(chordName, canvasId, startString, canvasWidth, canvasHeight) {
+      var template = "\n    <div class=\"main-container\">\n        <div class=\"accord-description\">\n            <div class=\"description-element\">\n                ".concat(chordName, "\n            </div>\n            <div class=\"description-element row-number-container\">\n                ").concat(startString, "\n                </div>\n        </div>\n        <canvas id=").concat(canvasId, "\n            class=\"canvas-style\"\n            width=").concat(canvasWidth, "\n            height=").concat(canvasHeight, "/>\n    </div> ");
+      return template;
+    }
+  }, {
+    key: "unknownChordTemplate",
+    get: function get() {
+      return "<div class='unknown-chord'>Unknown chord</div>";
+    }
+  }, {
+    key: "loadingTemplate",
+    get: function get() {
+      return "<div>Loading data</div>";
+    }
+  }]);
+
+  return TemplatesHolder;
+}();
+
+exports.TemplatesHolder = TemplatesHolder;
 },{}]},{},[6]);

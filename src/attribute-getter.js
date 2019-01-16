@@ -1,4 +1,4 @@
-import { sizeList } from "./style.constant";
+import { sizeList } from "./style-tools";
 import { chordList } from "./chord-list.constant";
 import { makeIdEnding } from "./common-tools";
 
@@ -7,7 +7,7 @@ class AttrGetter {
     this.componentRef = componentRef;
   }
 
-  getChords() {
+  getChordsAttr() {
     return this.componentRef.getAttribute("chords");
   }
 
@@ -23,7 +23,7 @@ class AttrGetter {
     return this.componentRef.getAttribute("reflect");
   }
 
-  resolveReflectAttr() {
+  get reflect() {
     const reflectModel = { horizontal: false, vertical: false };
     const reflectData =
       this.getReflectAttr() && this.getReflectAttr().length
@@ -44,13 +44,13 @@ class AttrGetter {
     return reflectModel;
   }
 
-  resolveTheme() {
+  get theme() {
     return this.getThemeAttr() && this.getThemeAttr().toLowerCase() == "dark"
       ? "dark"
       : "light";
   }
 
-  resolveSize() {
+  get size() {
     const tempSize = this.getSizeAttr();
     const sizeParsed = parseFloat("" + tempSize);
     let size = sizeList.medium;
@@ -60,16 +60,8 @@ class AttrGetter {
     return size;
   }
 
-  resolveCurrentChord() {
-    return this.getChords()
-      ? chordList.find(
-          el => el.name.toUpperCase() == this.getChords().toUpperCase()
-        )
-      : "";
-  }
-
   resolveChordNamesArray() {
-    const chordsData = this.getChords();
+    const chordsData = this.getChordsAttr();
     let chordsDataArr = [];
     if (chordsData) {
       chordsData.split(/\s+|[,.]+/).map(element => {
@@ -83,12 +75,15 @@ class AttrGetter {
     return chordsDataArr;
   }
 
-  resolveChordArray() {
+  get chordArray() {
     const chordsArr = [];
     this.resolveChordNamesArray().map(el => {
       chordList.map(element => {
         if (element.name.toLowerCase() == el) {
-          chordsArr.push({ ...element, componentCanvasId: `chord-${makeIdEnding()}` });
+          chordsArr.push({
+            ...element,
+            componentCanvasId: `chord-${makeIdEnding()}`
+          });
         }
       });
     });
