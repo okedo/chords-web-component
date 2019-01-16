@@ -184,11 +184,9 @@ export class CanvasDrawTool {
   }
 
   resolveChordReflection(canvas) {
-    if (canvas.canvasSettings.reflection.horizontal) {
-      canvas.ref.canvas.style += "; transform: scaleX(-1);";
-    }
-    if (canvas.canvasSettings.reflection.vertical) {
-      canvas.ref.canvas.style += "; transform: scaleY(-1);";
-    }
+    let transform = `; transform: scale(${
+      canvas.canvasSettings.reflection.horizontal ? -1 : 1
+    },${canvas.canvasSettings.reflection.vertical ? -1 : 1})`;
+    canvas.ref.canvas.style += transform;
   }
 }

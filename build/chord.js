@@ -322,13 +322,8 @@ function () {
   }, {
     key: "resolveChordReflection",
     value: function resolveChordReflection(canvas) {
-      if (canvas.canvasSettings.reflection.horizontal) {
-        canvas.ref.canvas.style += "; transform: scaleX(-1);";
-      }
-
-      if (canvas.canvasSettings.reflection.vertical) {
-        canvas.ref.canvas.style += "; transform: scaleY(-1);";
-      }
+      var transform = "; transform: scale(".concat(canvas.canvasSettings.reflection.horizontal ? -1 : 1, ",").concat(canvas.canvasSettings.reflection.vertical ? -1 : 1, ")");
+      canvas.ref.canvas.style += transform;
     }
   }]);
 
