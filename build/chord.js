@@ -165,63 +165,62 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var CanvasDrawTool =
 /*#__PURE__*/
 function () {
-  function CanvasDrawTool(canvas, chordData, customAttributes) {
+  function CanvasDrawTool(canvasRef, chordData, customAttributes) {
     _classCallCheck(this, CanvasDrawTool);
 
     this.chordData = chordData;
+    this.canvas = {};
+    var canvas = {
+      defaults: {
+        canvasWidth: 390,
+        canvasHeight: 140,
+        rowWidth: 30,
+        stringHeight: 20
+      },
+      ref: canvasRef,
+      canvasSettings: {},
+      customAttributes: customAttributes
+    };
+    canvas.canvasSettings = {
+      canvasHeight: canvas.defaults.canvasHeight * customAttributes.size,
+      canvasWidth: canvas.defaults.canvasWidth * customAttributes.size,
+      rowWidth: canvas.defaults.rowWidth * customAttributes.size,
+      stringHeight: canvas.defaults.stringHeight * customAttributes.size
+    };
     this.canvas = canvas;
-    this.customAttributes = customAttributes;
+    this.canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(this.findBorders());
   }
 
   _createClass(CanvasDrawTool, [{
     key: "draw",
     value: function draw() {
-      var chord = this.chordData;
-      var canvas = {
-        defaults: {
-          canvasWidth: 390,
-          canvasHeight: 140,
-          rowWidth: 30,
-          stringHeight: 20
-        },
-        ref: this.canvas,
-        canvasSettings: {}
-      };
-      canvas.canvasSettings = {
-        canvasHeight: canvas.defaults.canvasHeight * this.customAttributes.size,
-        canvasWidth: canvas.defaults.canvasWidth * this.customAttributes.size,
-        rowWidth: canvas.defaults.rowWidth * this.customAttributes.size,
-        stringHeight: canvas.defaults.stringHeight * this.customAttributes.size,
-        reflection: this.customAttributes.reflection
-      };
-      canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(canvas, chord, this.findBorders(chord));
-      this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
-      this.drawChord(chord, canvas);
-      this.resolveChordReflection(canvas);
+      this.updateCanvasSize();
+      this.drawChord();
+      this.resolveChordReflection();
     }
   }, {
     key: "updateCanvasSize",
-    value: function updateCanvasSize(canvas, canvasSettings) {
-      canvas.setAttribute("height", canvasSettings.canvasHeight);
-      canvas.setAttribute("width", canvasSettings.canvasWidth);
+    value: function updateCanvasSize() {
+      this.canvas.ref.canvas.setAttribute("height", this.canvas.canvasSettings.canvasHeight);
+      this.canvas.ref.canvas.setAttribute("width", this.canvas.canvasSettings.canvasWidth);
     }
   }, {
     key: "drawBasis",
-    value: function drawBasis(canvas) {
-      this.drawRectangle(canvas.ref, _style.styleConstants.colors.basisColor[this.customAttributes.theme], 0, 0, canvas.canvasSettings.canvasHeight, canvas.canvasSettings.canvasWidth);
+    value: function drawBasis() {
+      this.drawRectangle(_style.styleConstants.colors.basisColor[this.canvas.customAttributes.theme], 0, 0, this.canvas.canvasSettings.canvasHeight, this.canvas.canvasSettings.canvasWidth);
 
       for (var i = 1; i <= 12; i++) {
-        this.drawALine(canvas.ref, _style.styleConstants.colors.rowDividerColor[this.customAttributes.theme], i * canvas.canvasSettings.rowWidth, 0, i * canvas.canvasSettings.rowWidth, canvas.canvasSettings.canvasHeight);
+        this.drawALine(_style.styleConstants.colors.rowDividerColor[this.canvas.customAttributes.theme], i * this.canvas.canvasSettings.rowWidth, 0, i * this.canvas.canvasSettings.rowWidth, this.canvas.canvasSettings.canvasHeight);
       }
 
       for (var _i = 0; _i <= 6; _i++) {
-        this.drawALine(canvas.ref, _style.styleConstants.colors.stringsColor[this.customAttributes.theme], 0, _i * canvas.canvasSettings.stringHeight, canvas.canvasSettings.canvasWidth, _i * canvas.canvasSettings.stringHeight);
+        this.drawALine(_style.styleConstants.colors.stringsColor[this.canvas.customAttributes.theme], 0, _i * this.canvas.canvasSettings.stringHeight, this.canvas.canvasSettings.canvasWidth, _i * this.canvas.canvasSettings.stringHeight);
       }
     }
   }, {
     key: "drawRectangle",
-    value: function drawRectangle(canvas, color, positionY, positionX, width, height) {
-      var ctx = canvas.ctx;
+    value: function drawRectangle(color, positionY, positionX, width, height) {
+      var ctx = this.canvas.ref.ctx;
 
       if (ctx) {
         ctx.fillStyle = color;
@@ -230,35 +229,35 @@ function () {
     }
   }, {
     key: "drawChord",
-    value: function drawChord(chord, canvas) {
+    value: function drawChord() {
       var _this = this;
 
-      var currentStringHigth = canvas.canvasSettings.stringHeight;
+      var currentStringHigth = this.canvas.canvasSettings.stringHeight;
       var pressedStringRows = [];
-      var circleColor = _style.styleConstants.colors.circleColor[this.customAttributes.theme];
-      this.drawBasis(canvas);
+      var circleColor = _style.styleConstants.colors.circleColor[this.canvas.customAttributes.theme];
+      this.drawBasis();
 
-      for (var stringG in chord.structure.strings) {
-        if (chord.structure.strings.hasOwnProperty(stringG)) {
-          chord.structure.strings[stringG].forEach(function (element) {
+      for (var stringG in this.chordData.structure.strings) {
+        if (this.chordData.structure.strings.hasOwnProperty(stringG)) {
+          this.chordData.structure.strings[stringG].forEach(function (element) {
             pressedStringRows.push(element);
 
-            _this.drawCircle(canvas.ref, 5 * _this.customAttributes.size, circleColor, circleColor, _this.calculateElementHorizontalPosition(canvas, chord, element), currentStringHigth);
+            _this.drawCircle(5 * _this.canvas.customAttributes.size, circleColor, circleColor, _this.calculateElementHorizontalPosition(element), currentStringHigth);
           });
-          currentStringHigth += canvas.canvasSettings.stringHeight;
+          currentStringHigth += this.canvas.canvasSettings.stringHeight;
         }
       }
 
       if (pressedStringRows.filter(function (el) {
-        return el === chord.startString;
+        return el === _this.chordData.startString;
       }).length === 6) {
-        this.drawBare(canvas, chord);
+        this.drawBare();
       }
     }
   }, {
     key: "findBorders",
-    value: function findBorders(chord) {
-      var strings = chord.structure.strings;
+    value: function findBorders() {
+      var strings = this.chordData.structure.strings;
       var max = 1;
       var min = 12;
 
@@ -269,25 +268,25 @@ function () {
         }
       }
 
-      return max - chord.startString < 2 ? max + 1 : max;
+      return max - this.chordData.startString < 2 ? max + 1 : max;
     }
   }, {
     key: "calculateElementHorizontalPosition",
-    value: function calculateElementHorizontalPosition(canvas, chord, elementPosition) {
-      var elementPos = elementPosition - chord.startString;
-      var rowWidth = canvas.canvasSettings.rowWidth;
-      return canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
+    value: function calculateElementHorizontalPosition(elementPosition) {
+      var elementPos = elementPosition - this.chordData.startString;
+      var rowWidth = this.canvas.canvasSettings.rowWidth;
+      return this.canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
     }
   }, {
     key: "calculateCanvasSize",
-    value: function calculateCanvasSize(canvas, chord, maxRow) {
-      var canvasWidth = (1 + maxRow - chord.startString) * canvas.canvasSettings.rowWidth;
+    value: function calculateCanvasSize(maxRow) {
+      var canvasWidth = (1 + maxRow - this.chordData.startString) * this.canvas.canvasSettings.rowWidth;
       return canvasWidth;
     }
   }, {
     key: "drawCircle",
-    value: function drawCircle(canvas, size, color, fill, horizontal, vertical) {
-      var ctx = canvas.ctx;
+    value: function drawCircle(size, color, fill, horizontal, vertical) {
+      var ctx = this.canvas.ref.ctx;
 
       if (ctx) {
         ctx.strokeStyle = color;
@@ -300,9 +299,9 @@ function () {
     }
   }, {
     key: "drawALine",
-    value: function drawALine(canvas, color, xStart, yStart, xEnd, yEnd) {
-      var lineWidth = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
-      var ctx = canvas.ctx;
+    value: function drawALine(color, xStart, yStart, xEnd, yEnd) {
+      var lineWidth = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
+      var ctx = this.canvas.ref.ctx;
 
       if (ctx) {
         ctx.strokeStyle = color;
@@ -315,15 +314,15 @@ function () {
     }
   }, {
     key: "drawBare",
-    value: function drawBare(canvas, chord) {
-      var calculatedPos = this.calculateElementHorizontalPosition(canvas, chord, chord.startString);
-      this.drawALine(canvas.ref, _style.styleConstants.colors.circleColor[this.customAttributes.theme], calculatedPos, 5 * this.customAttributes.size, calculatedPos, canvas.canvasSettings.canvasHeight - 5, 15 * this.customAttributes.size);
+    value: function drawBare() {
+      var calculatedPos = this.calculateElementHorizontalPosition(this.chordData.startString);
+      this.drawALine(_style.styleConstants.colors.circleColor[this.canvas.customAttributes.theme], calculatedPos, 5 * this.canvas.customAttributes.size, calculatedPos, this.canvas.canvasSettings.canvasHeight - 5, 15 * this.canvas.customAttributes.size);
     }
   }, {
     key: "resolveChordReflection",
-    value: function resolveChordReflection(canvas) {
-      var transform = "; transform: scale(".concat(canvas.canvasSettings.reflection.horizontal ? -1 : 1, ",").concat(canvas.canvasSettings.reflection.vertical ? -1 : 1, ")");
-      canvas.ref.canvas.style += transform;
+    value: function resolveChordReflection() {
+      var transform = "; transform: scale(".concat(this.canvas.customAttributes.reflection.horizontal ? -1 : 1, ",").concat(this.canvas.customAttributes.reflection.vertical ? -1 : 1, ")");
+      this.canvas.ref.canvas.style += transform;
     }
   }]);
 

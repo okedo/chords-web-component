@@ -1,14 +1,10 @@
 import { styleConstants } from "./style.constant";
 
 export class CanvasDrawTool {
-  constructor(canvas, chordData, customAttributes) {
+  constructor(canvasRef, chordData, customAttributes) {
     this.chordData = chordData;
-    this.canvas = canvas;
-    this.customAttributes = customAttributes;
-  }
+    this.canvas = {};
 
-  draw() {
-    const chord = this.chordData;
     const canvas = {
       defaults: {
         canvasWidth: 390,
@@ -16,100 +12,110 @@ export class CanvasDrawTool {
         rowWidth: 30,
         stringHeight: 20
       },
-      ref: this.canvas,
-      canvasSettings: {}
+      ref: canvasRef,
+      canvasSettings: {},
+      customAttributes: customAttributes
     };
     canvas.canvasSettings = {
-      canvasHeight: canvas.defaults.canvasHeight * this.customAttributes.size,
-      canvasWidth: canvas.defaults.canvasWidth * this.customAttributes.size,
-      rowWidth: canvas.defaults.rowWidth * this.customAttributes.size,
-      stringHeight: canvas.defaults.stringHeight * this.customAttributes.size,
-      reflection: this.customAttributes.reflection
+      canvasHeight: canvas.defaults.canvasHeight * customAttributes.size,
+      canvasWidth: canvas.defaults.canvasWidth * customAttributes.size,
+      rowWidth: canvas.defaults.rowWidth * customAttributes.size,
+      stringHeight: canvas.defaults.stringHeight * customAttributes.size
     };
 
-    canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(
-      canvas,
-      chord,
-      this.findBorders(chord)
+    this.canvas = canvas;
+
+    this.canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(
+      this.findBorders()
     );
-    this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
-    this.drawChord(chord, canvas);
-    this.resolveChordReflection(canvas);
   }
 
-  updateCanvasSize(canvas, canvasSettings) {
-    canvas.setAttribute("height", canvasSettings.canvasHeight);
-    canvas.setAttribute("width", canvasSettings.canvasWidth);
+  draw() {
+    this.updateCanvasSize();
+    this.drawChord();
+    this.resolveChordReflection();
   }
 
-  drawBasis(canvas) {
+  updateCanvasSize() {
+    this.canvas.ref.canvas.setAttribute(
+      "height",
+      this.canvas.canvasSettings.canvasHeight
+    );
+    this.canvas.ref.canvas.setAttribute(
+      "width",
+      this.canvas.canvasSettings.canvasWidth
+    );
+  }
+
+  drawBasis() {
     this.drawRectangle(
-      canvas.ref,
-      styleConstants.colors.basisColor[this.customAttributes.theme],
+      styleConstants.colors.basisColor[this.canvas.customAttributes.theme],
       0,
       0,
-      canvas.canvasSettings.canvasHeight,
-      canvas.canvasSettings.canvasWidth
+      this.canvas.canvasSettings.canvasHeight,
+      this.canvas.canvasSettings.canvasWidth
     );
     for (let i = 1; i <= 12; i++) {
       this.drawALine(
-        canvas.ref,
-        styleConstants.colors.rowDividerColor[this.customAttributes.theme],
-        i * canvas.canvasSettings.rowWidth,
+        styleConstants.colors.rowDividerColor[
+          this.canvas.customAttributes.theme
+        ],
+        i * this.canvas.canvasSettings.rowWidth,
         0,
-        i * canvas.canvasSettings.rowWidth,
-        canvas.canvasSettings.canvasHeight
+        i * this.canvas.canvasSettings.rowWidth,
+        this.canvas.canvasSettings.canvasHeight
       );
     }
     for (let i = 0; i <= 6; i++) {
       this.drawALine(
-        canvas.ref,
-        styleConstants.colors.stringsColor[this.customAttributes.theme],
+        styleConstants.colors.stringsColor[this.canvas.customAttributes.theme],
         0,
-        i * canvas.canvasSettings.stringHeight,
-        canvas.canvasSettings.canvasWidth,
-        i * canvas.canvasSettings.stringHeight
+        i * this.canvas.canvasSettings.stringHeight,
+        this.canvas.canvasSettings.canvasWidth,
+        i * this.canvas.canvasSettings.stringHeight
       );
     }
   }
 
-  drawRectangle(canvas, color, positionY, positionX, width, height) {
-    const ctx = canvas.ctx;
+  drawRectangle(color, positionY, positionX, width, height) {
+    const ctx = this.canvas.ref.ctx;
     if (ctx) {
       ctx.fillStyle = color;
       ctx.fillRect(positionX, positionY, height, width);
     }
   }
 
-  drawChord(chord, canvas) {
-    let currentStringHigth = canvas.canvasSettings.stringHeight;
+  drawChord() {
+    let currentStringHigth = this.canvas.canvasSettings.stringHeight;
     const pressedStringRows = [];
     const circleColor =
-      styleConstants.colors.circleColor[this.customAttributes.theme];
-    this.drawBasis(canvas);
-    for (const stringG in chord.structure.strings) {
-      if (chord.structure.strings.hasOwnProperty(stringG)) {
-        chord.structure.strings[stringG].forEach(element => {
+      styleConstants.colors.circleColor[this.canvas.customAttributes.theme];
+    this.drawBasis();
+    for (const stringG in this.chordData.structure.strings) {
+      if (this.chordData.structure.strings.hasOwnProperty(stringG)) {
+        this.chordData.structure.strings[stringG].forEach(element => {
           pressedStringRows.push(element);
           this.drawCircle(
-            canvas.ref,
-            5 * this.customAttributes.size,
+            5 * this.canvas.customAttributes.size,
             circleColor,
             circleColor,
-            this.calculateElementHorizontalPosition(canvas, chord, element),
+            this.calculateElementHorizontalPosition(element),
             currentStringHigth
           );
         });
-        currentStringHigth += canvas.canvasSettings.stringHeight;
+        currentStringHigth += this.canvas.canvasSettings.stringHeight;
       }
     }
-    if (pressedStringRows.filter(el => el === chord.startString).length === 6) {
-      this.drawBare(canvas, chord);
+    if (
+      pressedStringRows.filter(el => el === this.chordData.startString)
+        .length === 6
+    ) {
+      this.drawBare();
     }
   }
 
-  findBorders(chord) {
-    const strings = chord.structure.strings;
+  findBorders() {
+    const strings = this.chordData.structure.strings;
     let max = 1;
     let min = 12;
     for (const st in strings) {
@@ -125,25 +131,28 @@ export class CanvasDrawTool {
       }
     }
 
-    return max - chord.startString < 2 ? max + 1 : max;
+    return max - this.chordData.startString < 2 ? max + 1 : max;
   }
 
-  calculateElementHorizontalPosition(canvas, chord, elementPosition) {
-    const elementPos = elementPosition - chord.startString;
-    const rowWidth = canvas.canvasSettings.rowWidth;
+  calculateElementHorizontalPosition(elementPosition) {
+    const elementPos = elementPosition - this.chordData.startString;
+    const rowWidth = this.canvas.canvasSettings.rowWidth;
     return (
-      canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5
+      this.canvas.canvasSettings.canvasWidth -
+      elementPos * rowWidth -
+      rowWidth * 0.5
     );
   }
 
-  calculateCanvasSize(canvas, chord, maxRow) {
+  calculateCanvasSize(maxRow) {
     const canvasWidth =
-      (1 + maxRow - chord.startString) * canvas.canvasSettings.rowWidth;
+      (1 + maxRow - this.chordData.startString) *
+      this.canvas.canvasSettings.rowWidth;
     return canvasWidth;
   }
 
-  drawCircle(canvas, size, color, fill, horizontal, vertical) {
-    const ctx = canvas.ctx;
+  drawCircle(size, color, fill, horizontal, vertical) {
+    const ctx = this.canvas.ref.ctx;
     if (ctx) {
       ctx.strokeStyle = color;
       ctx.fillStyle = fill;
@@ -154,8 +163,8 @@ export class CanvasDrawTool {
     }
   }
 
-  drawALine(canvas, color, xStart, yStart, xEnd, yEnd, lineWidth = 0) {
-    const ctx = canvas.ctx;
+  drawALine(color, xStart, yStart, xEnd, yEnd, lineWidth = 0) {
+    const ctx = this.canvas.ref.ctx;
     if (ctx) {
       ctx.strokeStyle = color;
       ctx.beginPath();
@@ -166,27 +175,24 @@ export class CanvasDrawTool {
     }
   }
 
-  drawBare(canvas, chord) {
+  drawBare() {
     const calculatedPos = this.calculateElementHorizontalPosition(
-      canvas,
-      chord,
-      chord.startString
+      this.chordData.startString
     );
     this.drawALine(
-      canvas.ref,
-      styleConstants.colors.circleColor[this.customAttributes.theme],
+      styleConstants.colors.circleColor[this.canvas.customAttributes.theme],
       calculatedPos,
-      5 * this.customAttributes.size,
+      5 * this.canvas.customAttributes.size,
       calculatedPos,
-      canvas.canvasSettings.canvasHeight - 5,
-      15 * this.customAttributes.size
+      this.canvas.canvasSettings.canvasHeight - 5,
+      15 * this.canvas.customAttributes.size
     );
   }
 
-  resolveChordReflection(canvas) {
+  resolveChordReflection() {
     let transform = `; transform: scale(${
-      canvas.canvasSettings.reflection.horizontal ? -1 : 1
-    },${canvas.canvasSettings.reflection.vertical ? -1 : 1})`;
-    canvas.ref.canvas.style += transform;
+      this.canvas.customAttributes.reflection.horizontal ? -1 : 1
+    },${this.canvas.customAttributes.reflection.vertical ? -1 : 1})`;
+    this.canvas.ref.canvas.style += transform;
   }
 }
