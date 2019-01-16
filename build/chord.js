@@ -154,6 +154,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.CanvasDrawTool = void 0;
 
+var _style = require("./style.constant");
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -163,24 +165,178 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var CanvasDrawTool =
 /*#__PURE__*/
 function () {
-  function CanvasDrawTool(canvas, chordData, reflect) {
+  function CanvasDrawTool(canvas, chordData, customAttributes) {
     _classCallCheck(this, CanvasDrawTool);
 
     this.chordData = chordData;
     this.canvas = canvas;
-    this.reflect = reflect;
+    this.customAttributes = customAttributes;
   }
 
   _createClass(CanvasDrawTool, [{
     key: "draw",
-    value: function draw() {}
+    value: function draw() {
+      var chord = this.chordData;
+      var canvas = {
+        defaults: {
+          canvasWidth: 390,
+          canvasHeight: 140,
+          rowWidth: 30,
+          stringHeight: 20
+        },
+        ref: this.canvas,
+        canvasSettings: {}
+      };
+      canvas.canvasSettings = {
+        canvasHeight: canvas.defaults.canvasHeight * this.customAttributes.size,
+        canvasWidth: canvas.defaults.canvasWidth * this.customAttributes.size,
+        rowWidth: canvas.defaults.rowWidth * this.customAttributes.size,
+        stringHeight: canvas.defaults.stringHeight * this.customAttributes.size,
+        reflection: this.customAttributes.reflection
+      };
+      canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(canvas, chord, this.findBorders(chord));
+      this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
+      this.drawChord(chord, canvas);
+      this.resolveChordReflection(canvas);
+    }
+  }, {
+    key: "updateCanvasSize",
+    value: function updateCanvasSize(canvas, canvasSettings) {
+      canvas.setAttribute("height", canvasSettings.canvasHeight);
+      canvas.setAttribute("width", canvasSettings.canvasWidth);
+    }
+  }, {
+    key: "drawBasis",
+    value: function drawBasis(canvas) {
+      this.drawRectangle(canvas.ref, _style.styleConstants.colors.basisColor[this.customAttributes.theme], 0, 0, canvas.canvasSettings.canvasHeight, canvas.canvasSettings.canvasWidth);
+
+      for (var i = 1; i <= 12; i++) {
+        this.drawALine(canvas.ref, _style.styleConstants.colors.rowDividerColor[this.customAttributes.theme], i * canvas.canvasSettings.rowWidth, 0, i * canvas.canvasSettings.rowWidth, canvas.canvasSettings.canvasHeight);
+      }
+
+      for (var _i = 0; _i <= 6; _i++) {
+        this.drawALine(canvas.ref, _style.styleConstants.colors.stringsColor[this.customAttributes.theme], 0, _i * canvas.canvasSettings.stringHeight, canvas.canvasSettings.canvasWidth, _i * canvas.canvasSettings.stringHeight);
+      }
+    }
+  }, {
+    key: "drawRectangle",
+    value: function drawRectangle(canvas, color, positionY, positionX, width, height) {
+      var ctx = canvas.ctx;
+
+      if (ctx) {
+        ctx.fillStyle = color;
+        ctx.fillRect(positionX, positionY, height, width);
+      }
+    }
+  }, {
+    key: "drawChord",
+    value: function drawChord(chord, canvas) {
+      var _this = this;
+
+      var currentStringHigth = canvas.canvasSettings.stringHeight;
+      var pressedStringRows = [];
+      var circleColor = _style.styleConstants.colors.circleColor[this.customAttributes.theme];
+      this.drawBasis(canvas);
+
+      for (var stringG in chord.structure.strings) {
+        if (chord.structure.strings.hasOwnProperty(stringG)) {
+          chord.structure.strings[stringG].forEach(function (element) {
+            pressedStringRows.push(element);
+
+            _this.drawCircle(canvas.ref, 5 * _this.customAttributes.size, circleColor, circleColor, _this.calculateElementHorizontalPosition(canvas, chord, element), currentStringHigth);
+          });
+          currentStringHigth += canvas.canvasSettings.stringHeight;
+        }
+      }
+
+      if (pressedStringRows.filter(function (el) {
+        return el === chord.startString;
+      }).length === 6) {
+        this.drawBare(canvas, chord);
+      }
+    }
+  }, {
+    key: "findBorders",
+    value: function findBorders(chord) {
+      var strings = chord.structure.strings;
+      var max = 1;
+      var min = 12;
+
+      for (var st in strings) {
+        if (strings.hasOwnProperty(st)) {
+          max = Math.max.apply(null, strings[st]) > max ? Math.max.apply(null, strings[st]) : max;
+          min = Math.min.apply(null, strings[st]) < min ? Math.min.apply(null, strings[st]) : min;
+        }
+      }
+
+      return max - chord.startString < 2 ? max + 1 : max;
+    }
+  }, {
+    key: "calculateElementHorizontalPosition",
+    value: function calculateElementHorizontalPosition(canvas, chord, elementPosition) {
+      var elementPos = elementPosition - chord.startString;
+      var rowWidth = canvas.canvasSettings.rowWidth;
+      return canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
+    }
+  }, {
+    key: "calculateCanvasSize",
+    value: function calculateCanvasSize(canvas, chord, maxRow) {
+      var canvasWidth = (1 + maxRow - chord.startString) * canvas.canvasSettings.rowWidth;
+      return canvasWidth;
+    }
+  }, {
+    key: "drawCircle",
+    value: function drawCircle(canvas, size, color, fill, horizontal, vertical) {
+      var ctx = canvas.ctx;
+
+      if (ctx) {
+        ctx.strokeStyle = color;
+        ctx.fillStyle = fill;
+        ctx.beginPath();
+        ctx.arc(horizontal, vertical, size, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.fill();
+      }
+    }
+  }, {
+    key: "drawALine",
+    value: function drawALine(canvas, color, xStart, yStart, xEnd, yEnd) {
+      var lineWidth = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
+      var ctx = canvas.ctx;
+
+      if (ctx) {
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(xStart, yStart);
+        ctx.lineTo(xEnd, yEnd);
+        ctx.lineWidth = lineWidth ? lineWidth : 1;
+        ctx.stroke();
+      }
+    }
+  }, {
+    key: "drawBare",
+    value: function drawBare(canvas, chord) {
+      var calculatedPos = this.calculateElementHorizontalPosition(canvas, chord, chord.startString);
+      this.drawALine(canvas.ref, _style.styleConstants.colors.circleColor[this.customAttributes.theme], calculatedPos, 5 * this.customAttributes.size, calculatedPos, canvas.canvasSettings.canvasHeight - 5, 15 * this.customAttributes.size);
+    }
+  }, {
+    key: "resolveChordReflection",
+    value: function resolveChordReflection(canvas) {
+      if (canvas.canvasSettings.reflection.horizontal) {
+        canvas.ref.canvas.style += "; transform: scaleX(-1);";
+      }
+
+      if (canvas.canvasSettings.reflection.vertical) {
+        canvas.ref.canvas.style += "; transform: scaleY(-1);";
+      }
+    }
   }]);
 
   return CanvasDrawTool;
 }();
 
 exports.CanvasDrawTool = CanvasDrawTool;
-},{}],3:[function(require,module,exports){
+},{"./style.constant":7}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -501,6 +657,10 @@ var _canvasDrawTool = require("./canvas-draw-tool");
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -567,13 +727,15 @@ function (_HTMLElement) {
       this.chordComponentRef = document.getElementById(this.id);
       this.attrGetter = new _attributeGetter.AttrGetter(this.chordComponentRef);
 
-      if (this.attrGetter.resolveCurrentChord()) {
+      if (this.attrGetter.resolveChordArray().length) {
         this.initAttributes();
         this.shadowRoot.innerHTML = this.resolveFinalTemplate();
         this.customAttributes.chords.map(function (chord) {
-          new _canvasDrawTool.CanvasDrawTool(_this2.initCanvas(chord), chord, _this2.canvasSettings.reflect).draw();
+          var customAttributes = _objectSpread({}, _this2.customAttributes, {
+            reflection: _this2.canvasSettings.reflect
+          });
 
-          _this2.resolveCanvas(chord, _this2.initCanvas(chord), _this2.canvasSettings.reflect);
+          new _canvasDrawTool.CanvasDrawTool(_this2.initCanvas(chord), chord, customAttributes).draw();
         });
       } else {
         this.shadowRoot.innerHTML = "<div>Unknown chord</div>";
@@ -591,13 +753,6 @@ function (_HTMLElement) {
     key: "initSize",
     value: function initSize() {
       this.customAttributes.size = this.attrGetter.resolveSize();
-      this.canvasSettings.stringHeight = this.canvasSettings.stringHeight * this.customAttributes.size;
-      this.canvasSettings.rowWidth = this.canvasSettings.stringHeight * this.customAttributes.size;
-    }
-  }, {
-    key: "initCurrentChord",
-    value: function initCurrentChord() {
-      this.customAttributes.currentChord = this.attrGetter.resolveCurrentChord();
     }
   }, {
     key: "initChords",
@@ -626,162 +781,6 @@ function (_HTMLElement) {
       return canvasRef;
     }
   }, {
-    key: "resolveCanvas",
-    value: function resolveCanvas(chord, canvasRef, reflection) {
-      var canvas = {
-        defaults: {
-          canvasWidth: 390,
-          canvasHeight: 140,
-          rowWidth: 30,
-          stringHeight: 20
-        },
-        ref: canvasRef,
-        canvasSettings: {}
-      };
-      canvas.canvasSettings = {
-        canvasHeight: canvas.defaults.canvasHeight * this.customAttributes.size,
-        canvasWidth: canvas.defaults.canvasWidth * this.customAttributes.size,
-        rowWidth: canvas.defaults.rowWidth * this.customAttributes.size,
-        stringHeight: canvas.defaults.stringHeight * this.customAttributes.size,
-        reflection: reflection
-      };
-      canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(canvas, chord, this.findBorders(chord));
-      this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
-      this.drawChord(chord, canvas);
-      this.resolveChordReflection(canvas);
-    }
-  }, {
-    key: "updateCanvasSize",
-    value: function updateCanvasSize(canvas, canvasSettings) {
-      canvas.setAttribute("height", canvasSettings.canvasHeight);
-      canvas.setAttribute("width", canvasSettings.canvasWidth);
-    }
-  }, {
-    key: "drawBasis",
-    value: function drawBasis(canvas) {
-      this.drawRectangle(canvas.ref, _style.styleConstants.colors.basisColor[this.customAttributes.theme], 0, 0, canvas.canvasSettings.canvasHeight, canvas.canvasSettings.canvasWidth);
-
-      for (var i = 1; i <= 12; i++) {
-        this.drawALine(canvas.ref, _style.styleConstants.colors.rowDividerColor[this.customAttributes.theme], i * canvas.canvasSettings.rowWidth, 0, i * canvas.canvasSettings.rowWidth, canvas.canvasSettings.canvasHeight);
-      }
-
-      for (var _i = 0; _i <= 6; _i++) {
-        this.drawALine(canvas.ref, _style.styleConstants.colors.stringsColor[this.customAttributes.theme], 0, _i * canvas.canvasSettings.stringHeight, canvas.canvasSettings.canvasWidth, _i * canvas.canvasSettings.stringHeight);
-      }
-    }
-  }, {
-    key: "drawRectangle",
-    value: function drawRectangle(canvas, color, positionY, positionX, width, height) {
-      var ctx = canvas.ctx;
-
-      if (ctx) {
-        ctx.fillStyle = color;
-        ctx.fillRect(positionX, positionY, height, width);
-      }
-    }
-  }, {
-    key: "drawChord",
-    value: function drawChord(chord, canvas) {
-      var _this3 = this;
-
-      var currentStringHigth = canvas.canvasSettings.stringHeight;
-      var pressedStringRows = [];
-      var circleColor = _style.styleConstants.colors.circleColor[this.customAttributes.theme];
-      this.drawBasis(canvas);
-
-      for (var stringG in chord.structure.strings) {
-        if (chord.structure.strings.hasOwnProperty(stringG)) {
-          chord.structure.strings[stringG].forEach(function (element) {
-            pressedStringRows.push(element);
-
-            _this3.drawCircle(canvas.ref, 5 * _this3.customAttributes.size, circleColor, circleColor, _this3.calculateElementHorizontalPosition(canvas, chord, element), currentStringHigth);
-          });
-          currentStringHigth += canvas.canvasSettings.stringHeight;
-        }
-      }
-
-      if (pressedStringRows.filter(function (el) {
-        return el === chord.startString;
-      }).length === 6) {
-        this.drawBare(canvas, chord);
-      }
-    }
-  }, {
-    key: "findBorders",
-    value: function findBorders(chord) {
-      var strings = chord.structure.strings;
-      var max = 1;
-      var min = 12;
-
-      for (var st in strings) {
-        if (strings.hasOwnProperty(st)) {
-          max = Math.max.apply(null, strings[st]) > max ? Math.max.apply(null, strings[st]) : max;
-          min = Math.min.apply(null, strings[st]) < min ? Math.min.apply(null, strings[st]) : min;
-        }
-      }
-
-      return max - chord.startString < 2 ? max + 1 : max;
-    }
-  }, {
-    key: "calculateElementHorizontalPosition",
-    value: function calculateElementHorizontalPosition(canvas, chord, elementPosition) {
-      var elementPos = elementPosition - chord.startString;
-      var rowWidth = canvas.canvasSettings.rowWidth;
-      return canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5;
-    }
-  }, {
-    key: "calculateCanvasSize",
-    value: function calculateCanvasSize(canvas, chord, maxRow) {
-      var canvasWidth = (1 + maxRow - chord.startString) * canvas.canvasSettings.rowWidth;
-      return canvasWidth;
-    }
-  }, {
-    key: "drawCircle",
-    value: function drawCircle(canvas, size, color, fill, horizontal, vertical) {
-      var ctx = canvas.ctx;
-
-      if (ctx) {
-        ctx.strokeStyle = color;
-        ctx.fillStyle = fill;
-        ctx.beginPath();
-        ctx.arc(horizontal, vertical, size, 0, 2 * Math.PI);
-        ctx.stroke();
-        ctx.fill();
-      }
-    }
-  }, {
-    key: "drawALine",
-    value: function drawALine(canvas, color, xStart, yStart, xEnd, yEnd) {
-      var lineWidth = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
-      var ctx = canvas.ctx;
-
-      if (ctx) {
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(xStart, yStart);
-        ctx.lineTo(xEnd, yEnd);
-        ctx.lineWidth = lineWidth ? lineWidth : 1;
-        ctx.stroke();
-      }
-    }
-  }, {
-    key: "drawBare",
-    value: function drawBare(canvas, chord) {
-      var calculatedPos = this.calculateElementHorizontalPosition(canvas, chord, chord.startString);
-      this.drawALine(canvas.ref, _style.styleConstants.colors.circleColor[this.customAttributes.theme], calculatedPos, 5 * this.customAttributes.size, calculatedPos, canvas.canvasSettings.canvasHeight - 5, 15 * this.customAttributes.size);
-    }
-  }, {
-    key: "resolveChordReflection",
-    value: function resolveChordReflection(canvas) {
-      if (canvas.canvasSettings.reflection.horizontal) {
-        canvas.ref.canvas.style += "; transform: scaleX(-1);";
-      }
-
-      if (canvas.canvasSettings.reflection.vertical) {
-        canvas.ref.canvas.style += "; transform: scaleY(-1);";
-      }
-    }
-  }, {
     key: "getCommonTemplete",
     value: function getCommonTemplete(chord, canvasId) {
       var template = "\n    <div class=\"main-container\">\n        <div class=\"accord-description\">\n            <div class=\"description-element\">\n                ".concat(chord.name, "\n            </div>\n            <div class=\"description-element row-number-container\">\n                ").concat(chord.startString, "\n                </div>\n        </div>\n        <canvas id=").concat(canvasId, "\n            class=\"canvas-style\"\n            width=").concat(this.canvasSettings.canvasWidth, "\n            height=").concat(this.canvasSettings.canvasHeight, "/>\n    </div>                                    \n    ");
@@ -790,12 +789,12 @@ function (_HTMLElement) {
   }, {
     key: "resolveFinalTemplate",
     value: function resolveFinalTemplate() {
-      var _this4 = this;
+      var _this3 = this;
 
       var styles = "<style>\n    .accord-description {\n        display: flex;\n        justify-content: space-between;\n        border: solid ".concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], " 1px;\n        border-bottom: none;\n        font-size: ").concat(_style.styleConstants.fontSize.normal * this.customAttributes.size, "px;\n        color: ").concat(_style.styleConstants.colors.textColor[this.customAttributes.theme], ";\n        background-color: ").concat(_style.styleConstants.colors.backgroundColor[this.customAttributes.theme], ";\n    }\n    .description-element {\n        display: inline-block;\n        width: 50%;\n        padding-top: 2px;\n        padding-left: 5px;\n    }\n        .row-number-container {\n        display: inline-block;\n        text-align: right;\n        padding-right: 13px;\n    }\n    .main-container {\n        width: auto;\n        display: inline-block;\n        margin: 20px;\n        color: ").concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], ";\n    }\n    .canvas-style {\n        border: solid ").concat(_style.styleConstants.colors.borderColor[this.customAttributes.theme], " 1px;\n        border-top: none;\n    }\n</style>");
       var template = "";
       this.customAttributes.chords.map(function (el) {
-        template += _this4.getCommonTemplete(el, el.componentCanvasId);
+        template += _this3.getCommonTemplete(el, el.componentCanvasId);
       });
       return template + styles;
     }
