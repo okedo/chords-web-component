@@ -9,15 +9,10 @@ export class ChordCreator extends HTMLElement {
     this.attrGetter;
 
     this.canvasSettings = {
-      canvasWidth: 390,
-      canvasHeight: 140,
-      maxRow: 12,
       reflect: {
         horizontal: false,
         vertical: false
-      },
-      rowWidth: 30,
-      stringHeight: 20
+      }
     };
 
     this.customAttributes = {
@@ -43,7 +38,16 @@ export class ChordCreator extends HTMLElement {
 
       this.shadowRoot.innerHTML = this.resolveFinalTemplate();
       this.customAttributes.chords.map(chord => {
-        this.resolveCanvas(chord);
+        new CanvasDrawTool(
+          this.initCanvas(chord),
+          chord,
+          this.canvasSettings.reflect
+        ).draw();
+        this.resolveCanvas(
+          chord,
+          this.initCanvas(chord),
+          this.canvasSettings.reflect
+        );
       });
     } else {
       this.shadowRoot.innerHTML = "<div>Unknown chord</div>";
@@ -87,24 +91,33 @@ export class ChordCreator extends HTMLElement {
     return canvasRef;
   }
 
-  resolveCanvas(chord) {
+  resolveCanvas(chord, canvasRef, reflection) {
     const canvas = {
-      ref: this.initCanvas(chord),
-      canvasSettings: {
-        canvasHeight:
-          this.canvasSettings.canvasHeight * this.customAttributes.size,
-        canvasWidth:
-          this.canvasSettings.canvasWidth * this.customAttributes.size
-      }
+      defaults: {
+        canvasWidth: 390,
+        canvasHeight: 140,
+        rowWidth: 30,
+        stringHeight: 20
+      },
+      ref: canvasRef,
+      canvasSettings: {}
+    };
+    canvas.canvasSettings = {
+      canvasHeight: canvas.defaults.canvasHeight * this.customAttributes.size,
+      canvasWidth: canvas.defaults.canvasWidth * this.customAttributes.size,
+      rowWidth: canvas.defaults.rowWidth * this.customAttributes.size,
+      stringHeight: canvas.defaults.stringHeight * this.customAttributes.size,
+      reflection: reflection
     };
 
     canvas.canvasSettings.canvasWidth = this.calculateCanvasSize(
+      canvas,
       chord,
       this.findBorders(chord)
     );
     this.updateCanvasSize(canvas.ref.canvas, canvas.canvasSettings);
     this.drawChord(chord, canvas);
-    this.resolveChordReflection(canvas.ref.canvas);
+    this.resolveChordReflection(canvas);
   }
 
   updateCanvasSize(canvas, canvasSettings) {
@@ -125,9 +138,9 @@ export class ChordCreator extends HTMLElement {
       this.drawALine(
         canvas.ref,
         styleConstants.colors.rowDividerColor[this.customAttributes.theme],
-        i * this.canvasSettings.rowWidth,
+        i * canvas.canvasSettings.rowWidth,
         0,
-        i * this.canvasSettings.rowWidth,
+        i * canvas.canvasSettings.rowWidth,
         canvas.canvasSettings.canvasHeight
       );
     }
@@ -136,9 +149,9 @@ export class ChordCreator extends HTMLElement {
         canvas.ref,
         styleConstants.colors.stringsColor[this.customAttributes.theme],
         0,
-        i * this.canvasSettings.stringHeight,
+        i * canvas.canvasSettings.stringHeight,
         canvas.canvasSettings.canvasWidth,
-        i * this.canvasSettings.stringHeight
+        i * canvas.canvasSettings.stringHeight
       );
     }
   }
@@ -152,8 +165,7 @@ export class ChordCreator extends HTMLElement {
   }
 
   drawChord(chord, canvas) {
-    const stringHeight = this.canvasSettings.stringHeight;
-    let currentStringHigth = this.canvasSettings.stringHeight;
+    let currentStringHigth = canvas.canvasSettings.stringHeight;
     const pressedStringRows = [];
     const circleColor =
       styleConstants.colors.circleColor[this.customAttributes.theme];
@@ -171,7 +183,7 @@ export class ChordCreator extends HTMLElement {
             currentStringHigth
           );
         });
-        currentStringHigth += stringHeight;
+        currentStringHigth += canvas.canvasSettings.stringHeight;
       }
     }
     if (pressedStringRows.filter(el => el === chord.startString).length === 6) {
@@ -201,15 +213,15 @@ export class ChordCreator extends HTMLElement {
 
   calculateElementHorizontalPosition(canvas, chord, elementPosition) {
     const elementPos = elementPosition - chord.startString;
-    const rowWidth = this.canvasSettings.rowWidth;
+    const rowWidth = canvas.canvasSettings.rowWidth;
     return (
       canvas.canvasSettings.canvasWidth - elementPos * rowWidth - rowWidth * 0.5
     );
   }
 
-  calculateCanvasSize(chord, maxRow) {
+  calculateCanvasSize(canvas, chord, maxRow) {
     const canvasWidth =
-      (1 + maxRow - chord.startString) * this.canvasSettings.rowWidth;
+      (1 + maxRow - chord.startString) * canvas.canvasSettings.rowWidth;
     return canvasWidth;
   }
 
@@ -255,11 +267,11 @@ export class ChordCreator extends HTMLElement {
   }
 
   resolveChordReflection(canvas) {
-    if (this.canvasSettings.reflect.horizontal) {
-      canvas.style += "; transform: scaleX(-1);";
+    if (canvas.canvasSettings.reflection.horizontal) {
+      canvas.ref.canvas.style += "; transform: scaleX(-1);";
     }
-    if (this.canvasSettings.reflect.vertical) {
-      canvas.style += "; transform: scaleY(-1);";
+    if (canvas.canvasSettings.reflection.vertical) {
+      canvas.ref.canvas.style += "; transform: scaleY(-1);";
     }
   }
 
