@@ -5,13 +5,14 @@ const del = require("del");
 const concat = require("gulp-concat");
 const browserify = require("browserify");
 const source = require("vinyl-source-stream");
+const sourcemaps = require('gulp-sourcemaps');
 
 gulp.task("clean-all", function() {
-  return del(["./dist/**", "./transpilled/**"], { force: true });
+  return del(["./dist", "./transpilled", "/build"], { force: true });
 });
 
 gulp.task("clean", function() {
-  return del(["./transpilled/**", "./dist/bundle.js"], { force: true });
+  return del(["./transpilled", "./dist"], { force: true });
 });
 
 gulp.task("minify", function() {
@@ -24,17 +25,18 @@ gulp.task("minify", function() {
 
 gulp.task("transpile", function() {
   return gulp
-    .src("src/*.js")
+    .src("src/**/*.js")
+    .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(gulp.dest("./transpilled"));
 });
 
 gulp.task("watch", function() {
-  gulp.watch("./src/*.js", gulp.series("transpile", "minify"));
+  gulp.watch("./src/**/*.js", gulp.series("clean-all", "transpile", "browserify", "minify", "clean"));
 });
 
 gulp.task("browserify", function() {
-  return browserify("./transpilled/chord.js")
+  return browserify("./transpilled/index.js")
     .bundle()
     .pipe(source("bundle.js"))
     .pipe(gulp.dest("./dist"));

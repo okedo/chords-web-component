@@ -4,21 +4,26 @@ Small widget for displaying of guitar chords at your website
 
 ## Getting Started
 
+**Warning!** 
+
+``` <single-chord></single-chord> ``` tag and *chord* attribute is deprecated in 0.0.2. Now use ```<chord-creator></<chord-creator>``` and *chords*.
+
+
 ![example image](example.png)
 
-You can just copy **chords.js** or **chords-min.js** from **/build** into your js directory import script and insert **<single-chord chord="C"></single-chord>** into your html
+You can just copy **chords.js** or **chords-min.js** from **/build** into your js directory import script and insert **<chord-creator chord="C"></chord-creator>** into your html
 
 ### Installing
 
 Copy **chords.js** or **chords-min.js** into your **js** directory.
 
 
-Add ```<single-chord chord="C"></single-chord>``` and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
+Add ```<chord-creator chords="C"></chord-creator>``` and import script **chords.js** or **chords-min.js** at the bottom of body in HTML file:
 
 ```
 <html>
   <body>
-    <single-chord chord="C"></single-chord>
+    <chord-creator chords="C"></chord-creator>
     <script src="./your-location/chord-min.js"></script>
   </body>
 </html>
