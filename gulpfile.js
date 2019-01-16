@@ -25,14 +25,14 @@ gulp.task("minify", function() {
 
 gulp.task("transpile", function() {
   return gulp
-    .src("src/*.js")
+    .src("src/**/*.js")
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(gulp.dest("./transpilled"));
 });
 
 gulp.task("watch", function() {
-  gulp.watch("./src/*.js", gulp.series("clean-all", "transpile", "browserify", "minify", "clean"));
+  gulp.watch("./src/**/*.js", gulp.series("clean-all", "transpile", "browserify", "minify", "clean"));
 });
 
 gulp.task("browserify", function() {

@@ -1,8 +1,8 @@
-import { stylesHolder } from "./style-tools";
-import { AttrGetter } from "./attribute-getter";
-import { makeIdEnding } from "./common-tools";
-import { CanvasDrawTool } from "./canvas-draw-tool";
-import { TemplatesHolder } from "./templates";
+import { stylesHolder } from "./tools/style-tools";
+import { AttrGetter } from "./tools/attribute-getter";
+import { makeIdEnding } from "./tools/common-tools";
+import { CanvasDrawTool } from "./tools/canvas-draw-tool";
+import { TemplatesHolder } from "./tools/templates";
 
 export class ChordCreator extends HTMLElement {
   constructor() {
