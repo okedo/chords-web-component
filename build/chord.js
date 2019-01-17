@@ -233,7 +233,7 @@ function () {
       var chordsDataArr = [];
 
       if (chordsData) {
-        chordsData.split(/\s+|[,.]+/).map(function (element) {
+        (0, _commonTools.getNormalizedAttributeArray)(chordsData).map(function (element) {
           if (_chordList.chordList.find(function (el) {
             return el.name.toLowerCase() == element.toLowerCase();
           })) {
@@ -251,7 +251,7 @@ function () {
         horizontal: false,
         vertical: false
       };
-      var reflectData = this.getReflectAttr() && this.getReflectAttr().length ? this.getReflectAttr().toLowerCase().split(/\s+|[,.]+/) : "";
+      var reflectData = this.getReflectAttr() && this.getReflectAttr().length ? (0, _commonTools.getNormalizedAttributeArray)(this.getReflectAttr()) : "";
 
       if (reflectData) {
         reflectData.map(function (el) {
@@ -799,6 +799,7 @@ exports.chordList = chordList;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.getNormalizedAttributeArray = getNormalizedAttributeArray;
 exports.makeIdEnding = makeIdEnding;
 
 function makeIdEnding() {
@@ -810,6 +811,10 @@ function makeIdEnding() {
   }
 
   return new Date().getTime() + text;
+}
+
+function getNormalizedAttributeArray(str) {
+  return str.toLowerCase().split(/\s+|[,.]+/);
 }
 },{}],7:[function(require,module,exports){
 "use strict";

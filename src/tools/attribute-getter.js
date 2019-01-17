@@ -1,6 +1,6 @@
 import { sizeList } from "./style-tools";
 import { chordList } from "./chord-list.constant";
-import { makeIdEnding } from "./common-tools";
+import { makeIdEnding, getNormalizedAttributeArray } from "./common-tools";
 
 class AttrGetter {
   constructor(componentRef) {
@@ -27,9 +27,7 @@ class AttrGetter {
     const reflectModel = { horizontal: false, vertical: false };
     const reflectData =
       this.getReflectAttr() && this.getReflectAttr().length
-        ? this.getReflectAttr()
-            .toLowerCase()
-            .split(/\s+|[,.]+/)
+        ? getNormalizedAttributeArray(this.getReflectAttr())
         : "";
     if (reflectData) {
       reflectData.map(el => {
@@ -64,7 +62,7 @@ class AttrGetter {
     const chordsData = this.getChordsAttr();
     let chordsDataArr = [];
     if (chordsData) {
-      chordsData.split(/\s+|[,.]+/).map(element => {
+      getNormalizedAttributeArray(chordsData).map(element => {
         if (
           chordList.find(el => el.name.toLowerCase() == element.toLowerCase())
         ) {
