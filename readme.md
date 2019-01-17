@@ -37,6 +37,7 @@ Detailes you can read at [USERGUIDE.md](USERGUIDE.md)
 ## Built With
 
 - [Web components](https://developer.mozilla.org/en-US/docs/Web/Web_Components) - The web tool used
+- [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) - HTML draw tool
 
 ## Versioning
 
